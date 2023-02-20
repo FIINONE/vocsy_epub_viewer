@@ -64,7 +64,6 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
 
         final MethodChannel channel = new MethodChannel(registrar.messenger(), "vocsy_epub_viewer");
         channel.setMethodCallHandler(new EpubViewerPlugin());
-
     }
 
     @Override

@@ -24,7 +24,7 @@ import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.MethodChannel;
 
-public class Reader implements OnHighlightListener, ReadLocatorListener, FolioReader.OnClosedListener {
+public class Reader implements OnHighlightListener, ReadLocatorListener, FolioReader.OnClosedListener, FolioReader.OnAddWordListener {
 
     private ReaderConfig readerConfig;
     public FolioReader folioReader;
@@ -46,7 +46,8 @@ public class Reader implements OnHighlightListener, ReadLocatorListener, FolioRe
         folioReader = FolioReader.get()
                 .setOnHighlightListener(this)
                 .setReadLocatorListener(this)
-                .setOnClosedListener(this);
+                .setOnClosedListener(this)
+                .setOnAddWordListener(this);
         pageEventSink = sink;
     }
 
@@ -186,4 +187,8 @@ public class Reader implements OnHighlightListener, ReadLocatorListener, FolioRe
     }
 
 
+    @Override
+    public void onAddWordListener() {
+        Log.i("addWord", "-> onAddWordListener -> ");
+    }
 }
