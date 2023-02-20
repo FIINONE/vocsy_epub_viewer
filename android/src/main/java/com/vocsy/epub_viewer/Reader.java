@@ -186,9 +186,8 @@ public class Reader implements OnHighlightListener, ReadLocatorListener, FolioRe
         read_locator = readLocator;
     }
 
-
     @Override
-    public void onAddWordListener() {
-        Log.i("addWord", "-> onAddWordListener -> ");
+    public void onAddWordListener(String word) {
+        Log.i("addWord", "-> onAddWordListener -> " + word);
     }
 }
