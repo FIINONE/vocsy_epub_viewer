@@ -65,8 +65,8 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
             }
         });
 
-        addWordChannel = EventChannel(messenger, addWordChannelName);
-        addWordChannel.setStreamHandler(EventChannel.StreamHandler() {
+        addWordChannel = new EventChannel(messenger, addWordChannelName);
+        addWordChannel.setStreamHandler(new EventChannel.StreamHandler() {
             @Override
             public void onListen(Object o, EventChannel.EventSink eventSink) {
 
@@ -108,9 +108,8 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
         });
 
 
-
-        addWordChannel = EventChannel(messenger, addWordChannelName);
-        addWordChannel.setStreamHandler(EventChannel.StreamHandler() {
+        addWordChannel = new EventChannel(messenger, addWordChannelName);
+        addWordChannel.setStreamHandler(new EventChannel.StreamHandler() {
             @Override
             public void onListen(Object o, EventChannel.EventSink eventSink) {
 

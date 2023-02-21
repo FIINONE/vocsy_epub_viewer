@@ -192,6 +192,11 @@ public class Reader implements OnHighlightListener, ReadLocatorListener, FolioRe
     @Override
     public void onAddWordListener(String word) {
         Log.i("addWord", "-> onAddWordListener -> " + word);
-        addWordSink.success(word);
+
+        if (addWordSink != null) {
+            addWordSink.success(word);
+        } else {
+            Log.i("addWordSink", "-> Sink is Empty -> " + word);
+        }
     }
 }

@@ -88,7 +88,9 @@ class VocsyEpub {
   }
 
   static Stream<String> get addWordStream {
-    Stream<String> addWordStream = _addWordChannel.receiveBroadcastStream().map((word) => word.toString());
+    Stream<String> addWordStream = _addWordChannel.receiveBroadcastStream().map(
+          (event) => event.toString(),
+        );
     return addWordStream;
   }
 }
