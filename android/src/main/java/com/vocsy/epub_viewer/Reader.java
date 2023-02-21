@@ -36,7 +36,9 @@ public class Reader implements OnHighlightListener, ReadLocatorListener, FolioRe
     private ReadLocator read_locator;
     private static final String PAGE_CHANNEL = "sage";
 
-    Reader(Context context, BinaryMessenger messenger, ReaderConfig config, EventChannel.EventSink sink) {
+    private EventChannel.EventSink addWordSink;
+
+    Reader(Context context, BinaryMessenger messenger, ReaderConfig config, EventChannel.EventSink sink, EventChannel.EventSink addSink) {
         this.context = context;
         readerConfig = config;
 
@@ -49,6 +51,7 @@ public class Reader implements OnHighlightListener, ReadLocatorListener, FolioRe
                 .setOnClosedListener(this)
                 .setOnAddWordListener(this);
         pageEventSink = sink;
+        addWordSink = addSink;
     }
 
     public void open(String bookPath, String lastLocation) {
@@ -189,5 +192,6 @@ public class Reader implements OnHighlightListener, ReadLocatorListener, FolioRe
     @Override
     public void onAddWordListener(String word) {
         Log.i("addWord", "-> onAddWordListener -> " + word);
+        addWordSink.success(word);
     }
 }

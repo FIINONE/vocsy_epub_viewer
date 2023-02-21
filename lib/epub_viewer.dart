@@ -12,8 +12,10 @@ part 'model/epub_locator.dart';
 part 'utils/util.dart';
 
 class VocsyEpub {
-  static const MethodChannel _channel = const MethodChannel('vocsy_epub_viewer');
+  static const MethodChannel _channel =
+      const MethodChannel('vocsy_epub_viewer');
   static const EventChannel _pageChannel = const EventChannel('page');
+  static const EventChannel _addWordChannel = const EventChannel('add_word');
 
   /// Configure Viewer's with available values
   ///
@@ -44,7 +46,8 @@ class VocsyEpub {
   static void open(String bookPath, {EpubLocator? lastLocation}) async {
     Map<String, dynamic> agrs = {
       "bookPath": bookPath,
-      'lastLocation': lastLocation == null ? '' : jsonEncode(lastLocation.toJson()),
+      'lastLocation':
+          lastLocation == null ? '' : jsonEncode(lastLocation.toJson()),
     };
     _channel.invokeMethod('setChannel');
     await _channel.invokeMethod('open', agrs);
@@ -61,7 +64,8 @@ class VocsyEpub {
     if (extension(bookPath) == '.epub') {
       Map<String, dynamic> agrs = {
         "bookPath": (await Util.getFileFromAsset(bookPath)).path,
-        'lastLocation': lastLocation == null ? '' : jsonEncode(lastLocation.toJson()),
+        'lastLocation':
+            lastLocation == null ? '' : jsonEncode(lastLocation.toJson()),
       };
       _channel.invokeMethod('setChannel');
       await _channel.invokeMethod('open', agrs);
@@ -77,8 +81,14 @@ class VocsyEpub {
   /// Stream to get EpubLocator for android and pageNumber for iOS
   static Stream get locatorStream {
     print("In stream");
-    Stream pageStream = _pageChannel.receiveBroadcastStream().map((value) => value);
+    Stream pageStream =
+        _pageChannel.receiveBroadcastStream().map((value) => value);
 
     return pageStream;
+  }
+
+  static Stream<String> get addWordStream {
+    Stream<String> addWordStream = _addWordChannel.receiveBroadcastStream().map((word) => word.toString());
+    return addWordStream;
   }
 }

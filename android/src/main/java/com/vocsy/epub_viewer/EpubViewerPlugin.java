@@ -36,6 +36,10 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
     static private EventChannel.EventSink sink;
     private static final String channelName = "vocsy_epub_viewer";
 
+    static private EventChannel addWordChannel;
+    static private EventChannel.EventSink addWordSink;
+    private static final String addWordChannelName = "add_word";
+
     /**
      * Plugin registration.
      */
@@ -61,6 +65,22 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
             }
         });
 
+        addWordChannel = EventChannel(messenger, addWordChannelName);
+        addWordChannel.setStreamHandler(EventChannel.StreamHandler() {
+            @Override
+            public void onListen(Object o, EventChannel.EventSink eventSink) {
+
+                addWordSink = eventSink;
+                if (addWordSink == null) {
+                    Log.i("addWordSink", "Sink is empty");
+                }
+            }
+
+            @Override
+            public void onCancel(Object o) {
+
+            }
+        });
 
         final MethodChannel channel = new MethodChannel(registrar.messenger(), "vocsy_epub_viewer");
         channel.setMethodCallHandler(new EpubViewerPlugin());
@@ -86,6 +106,26 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
 
             }
         });
+
+
+
+        addWordChannel = EventChannel(messenger, addWordChannelName);
+        addWordChannel.setStreamHandler(EventChannel.StreamHandler() {
+            @Override
+            public void onListen(Object o, EventChannel.EventSink eventSink) {
+
+                addWordSink = eventSink;
+                if (addWordSink == null) {
+                    Log.i("addWordSink", "Sink is empty");
+                }
+            }
+
+            @Override
+            public void onCancel(Object o) {
+
+            }
+        });
+
         channel = new MethodChannel(binding.getFlutterEngine().getDartExecutor(), channelName);
         channel.setMethodCallHandler(this);
     }
@@ -140,7 +180,10 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
             if (sink == null) {
                 Log.i("sink status", "sink is empty");
             }
-            reader = new Reader(context, messenger, config, sink);
+            if (addWordSink == null) {
+                Log.i("addWordSink status", "sink is empty");
+            }
+            reader = new Reader(context, messenger, config, sink, addWordSink);
             reader.open(bookPath, lastLocation);
 
         } else if (call.method.equals("close")) {
