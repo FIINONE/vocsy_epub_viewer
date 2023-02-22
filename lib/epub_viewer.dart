@@ -16,6 +16,8 @@ class VocsyEpub {
       const MethodChannel('vocsy_epub_viewer');
   static const EventChannel _pageChannel = const EventChannel('page');
   static const EventChannel _addWordChannel = const EventChannel('add_word');
+  static const EventChannel _transAndCheckWordChannel =
+      const EventChannel('translate_and_check_word');
 
   /// Configure Viewer's with available values
   ///
@@ -92,5 +94,23 @@ class VocsyEpub {
           (event) => event.toString(),
         );
     return addWordStream;
+  }
+
+  static Stream<String> get transAndCheckWordStream {
+    Stream<String> addWordStream =
+        _transAndCheckWordChannel.receiveBroadcastStream().map(
+              (event) => event.toString(),
+            );
+    return addWordStream;
+  }
+
+  static Future<void> sendTransAndCheckWord(
+      String translate, bool wordExist) async {
+    Map<String, dynamic> args = {
+      "translate": translate,
+      "wordExist": wordExist,
+    };
+
+    await _channel.invokeMethod('send_word', args);
   }
 }

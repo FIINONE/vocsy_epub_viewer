@@ -40,6 +40,10 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
     static private EventChannel.EventSink addWordSink;
     private static final String addWordChannelName = "add_word";
 
+    static private EventChannel transAndCheckChannel;
+    static private EventChannel.EventSink transAndCheckSink;
+    private static final String transAndCheckChannelName = "translate_and_check_word";
+
     /**
      * Plugin registration.
      */
@@ -66,6 +70,8 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
         });
 
         addWordChannel = new EventChannel(messenger, addWordChannelName);
+        transAndCheckChannel = new EventChannel(messenger, transAndCheckChannelName);
+
         addWordChannel.setStreamHandler(new EventChannel.StreamHandler() {
             @Override
             public void onListen(Object o, EventChannel.EventSink eventSink) {
@@ -73,6 +79,21 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
                 addWordSink = eventSink;
                 if (addWordSink == null) {
                     Log.i("addWordSink", "Sink is empty");
+                }
+            }
+
+            @Override
+            public void onCancel(Object o) {
+
+            }
+        });
+        transAndCheckChannel.setStreamHandler(new EventChannel.StreamHandler() {
+            @Override
+            public void onListen(Object o, EventChannel.EventSink eventSink) {
+
+                transAndCheckSink = eventSink;
+                if (transAndCheckSink == null) {
+                    Log.i("transAndCheckSink", "Sink is empty");
                 }
             }
 
@@ -109,6 +130,8 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
 
 
         addWordChannel = new EventChannel(messenger, addWordChannelName);
+        transAndCheckChannel = new EventChannel(messenger, transAndCheckChannelName);
+
         addWordChannel.setStreamHandler(new EventChannel.StreamHandler() {
             @Override
             public void onListen(Object o, EventChannel.EventSink eventSink) {
@@ -116,6 +139,21 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
                 addWordSink = eventSink;
                 if (addWordSink == null) {
                     Log.i("addWordSink", "Sink is empty");
+                }
+            }
+
+            @Override
+            public void onCancel(Object o) {
+
+            }
+        });
+        transAndCheckChannel.setStreamHandler(new EventChannel.StreamHandler() {
+            @Override
+            public void onListen(Object o, EventChannel.EventSink eventSink) {
+
+                transAndCheckSink = eventSink;
+                if (transAndCheckSink == null) {
+                    Log.i("transAndCheckSink", "Sink is empty");
                 }
             }
 
@@ -182,7 +220,10 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
             if (addWordSink == null) {
                 Log.i("addWordSink status", "sink is empty");
             }
-            reader = new Reader(context, messenger, config, sink, addWordSink);
+            if (transAndCheckSink == null) {
+                Log.i("transAndCheckSink status", "sink is empty");
+            }
+            reader = new Reader(context, messenger, config, sink, addWordSink, transAndCheckSink);
             reader.open(bookPath, lastLocation);
 
         } else if (call.method.equals("close")) {
@@ -202,6 +243,12 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
 
                 }
             });
+        } else if (call.method.equals("send_word")) {
+            Map<String, Object> arguments = (Map<String, Object>) call.arguments;
+            String translate = arguments.get("translate").toString();
+            Boolean wordExist = Boolean.parseBoolean(arguments.get("wordExist").toString());
+
+            reader.sendTranslateAndCheckWord(translate, wordExist);
         } else {
             result.notImplemented();
         }

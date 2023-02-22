@@ -24,7 +24,8 @@ import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.MethodChannel;
 
-public class Reader implements OnHighlightListener, ReadLocatorListener, FolioReader.OnClosedListener, FolioReader.OnAddWordListener {
+public class Reader implements OnHighlightListener, ReadLocatorListener, FolioReader.OnClosedListener,
+            FolioReader.OnAddWordListener, FolioReader.TranslateAndCheckWordListener {
 
     private ReaderConfig readerConfig;
     public FolioReader folioReader;
@@ -37,8 +38,9 @@ public class Reader implements OnHighlightListener, ReadLocatorListener, FolioRe
     private static final String PAGE_CHANNEL = "sage";
 
     private EventChannel.EventSink addWordSink;
+    private EventChannel.EventSink translateAndCheckSink;
 
-    Reader(Context context, BinaryMessenger messenger, ReaderConfig config, EventChannel.EventSink sink, EventChannel.EventSink addSink) {
+    Reader(Context context, BinaryMessenger messenger, ReaderConfig config, EventChannel.EventSink sink, EventChannel.EventSink addSink, EventChannel.EventSink sendWordSink) {
         this.context = context;
         readerConfig = config;
 
@@ -49,9 +51,12 @@ public class Reader implements OnHighlightListener, ReadLocatorListener, FolioRe
                 .setOnHighlightListener(this)
                 .setReadLocatorListener(this)
                 .setOnClosedListener(this)
-                .setOnAddWordListener(this);
+                .setOnAddWordListener(this)
+                .setTranslateAndCheckListener(this);
+
         pageEventSink = sink;
         addWordSink = addSink;
+        translateAndCheckSink = sendWordSink;
     }
 
     public void open(String bookPath, String lastLocation) {
@@ -198,5 +203,22 @@ public class Reader implements OnHighlightListener, ReadLocatorListener, FolioRe
         } else {
             Log.i("addWordSink", "-> Sink is Empty -> " + word);
         }
+    }
+
+    @Override
+    public void translateAndCheckWordListener(String word) {
+        Log.i("translate and check word", "-> translateAndCheckWordListener ->" + word);
+
+        if (translateAndCheckSink != null) {
+            translateAndCheckSink.success(word);
+        } else {
+            Log.i("translateAndCheckSink", "-> Sink is Empty -> " + word);
+
+        }
+    }
+
+    public void sendTranslateAndCheckWord(String translate, boolean wordExist) {
+        Log.i("send word", "-> sendTranslateAndCheckWord -> " + translate + wordExist);
+        folioReader.sendTranslateAndCheckWord(translate, wordExist);
     }
 }
