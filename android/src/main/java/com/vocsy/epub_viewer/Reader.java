@@ -39,8 +39,13 @@ public class Reader implements OnHighlightListener, ReadLocatorListener, FolioRe
 
     private EventChannel.EventSink addWordSink;
     private EventChannel.EventSink translateAndCheckSink;
+    private EventChannel.EventSink textToSpeechSink;
+    private EventChannel.EventSink onDismissPopupSink;
 
-    Reader(Context context, BinaryMessenger messenger, ReaderConfig config, EventChannel.EventSink sink, EventChannel.EventSink addSink, EventChannel.EventSink sendWordSink) {
+    Reader(Context context, BinaryMessenger messenger, ReaderConfig config, 
+        EventChannel.EventSink sink, EventChannel.EventSink addSink,
+        EventChannel.EventSink sendWordSink, EventChannel.EventSink textSpeechSing,
+        EventChannel.EventSink dismissSink) {
         this.context = context;
         readerConfig = config;
 
@@ -52,11 +57,15 @@ public class Reader implements OnHighlightListener, ReadLocatorListener, FolioRe
                 .setReadLocatorListener(this)
                 .setOnClosedListener(this)
                 .setOnAddWordListener(this)
-                .setTranslateAndCheckListener(this);
+                .setTranslateAndCheckListener(this)
+                .setTextToSpeechListener(this)
+                .setOnDismissPopupListener(this);
 
         pageEventSink = sink;
         addWordSink = addSink;
         translateAndCheckSink = sendWordSink;
+        textToSpeechSink = textSpeechSing;
+        onDismissPopupSink = dismissSink;
     }
 
     public void open(String bookPath, String lastLocation) {
@@ -196,23 +205,47 @@ public class Reader implements OnHighlightListener, ReadLocatorListener, FolioRe
 
     @Override
     public void onAddWordListener(String word) {
-        Log.i("addWord", "-> onAddWordListener -> " + word);
+        Log.i("reader", "-> onAddWordListener -> " + word);
 
         if (addWordSink != null) {
             addWordSink.success(word);
         } else {
-            Log.i("addWordSink", "-> Sink is Empty -> " + word);
+            Log.i("reader", "addWordSink -> Sink is Empty -> " + word);
         }
     }
 
     @Override
     public void translateAndCheckWordListener(String word) {
-        Log.i("translate and check word", "-> translateAndCheckWordListener ->" + word);
+        Log.i("reader", "-> translateAndCheckWordListener ->" + word);
 
         if (translateAndCheckSink != null) {
             translateAndCheckSink.success(word);
         } else {
-            Log.i("translateAndCheckSink", "-> Sink is Empty -> " + word);
+            Log.i("reader", "translateAndCheckSink -> Sink is Empty -> " + word);
+
+        }
+    }
+
+    @Override
+    public void textToSpeechListener(String word) {
+        Log.v("reader", "-> textToSpeechListener ->" + word);
+        
+        if (textToSpeechSink != null) {
+            textToSpeechSink.success(word);
+        } else {
+            Log.i("reader", "textToSpeechSink -> Sink is Empty -> " + word);
+
+        }
+    }
+
+    @Override
+    public void onDismissPopupListener() {
+        Log.v("reader", "-> onDismissPopupListener");
+
+        if (onDismissPopupSink != null) {
+            onDismissPopupSink.success(word);
+        } else {
+            Log.i("reader", "onDismissPopupSink -> Sink is Empty -> " + word);
 
         }
     }

@@ -44,6 +44,14 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
     static private EventChannel.EventSink transAndCheckSink;
     private static final String transAndCheckChannelName = "translate_and_check_word";
 
+    static private EventChannel textToSpeechChannel;
+    static private EventChannel.EventSink textToSpeechSink;
+    private static final String textToSpeechChannelName = "text_to_speech";
+
+    static private EventChannel onDismissPopupChannel;
+    static private EventChannel.EventSink onDismissPopupSink;
+    private static final String onDismissPopupChannelName = "on_dismiss_popup";
+
     /**
      * Plugin registration.
      */
@@ -69,39 +77,10 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
             }
         });
 
-        addWordChannel = new EventChannel(messenger, addWordChannelName);
-        transAndCheckChannel = new EventChannel(messenger, transAndCheckChannelName);
-
-        addWordChannel.setStreamHandler(new EventChannel.StreamHandler() {
-            @Override
-            public void onListen(Object o, EventChannel.EventSink eventSink) {
-
-                addWordSink = eventSink;
-                if (addWordSink == null) {
-                    Log.i("addWordSink", "Sink is empty");
-                }
-            }
-
-            @Override
-            public void onCancel(Object o) {
-
-            }
-        });
-        transAndCheckChannel.setStreamHandler(new EventChannel.StreamHandler() {
-            @Override
-            public void onListen(Object o, EventChannel.EventSink eventSink) {
-
-                transAndCheckSink = eventSink;
-                if (transAndCheckSink == null) {
-                    Log.i("transAndCheckSink", "Sink is empty");
-                }
-            }
-
-            @Override
-            public void onCancel(Object o) {
-
-            }
-        });
+        setAddWordEvent();
+        setTranslateAndCheckEvent();
+        setTextToSpeechEvent();
+        setOnDismissPopupEvent();
 
         final MethodChannel channel = new MethodChannel(registrar.messenger(), "vocsy_epub_viewer");
         channel.setMethodCallHandler(new EpubViewerPlugin());
@@ -129,9 +108,17 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
         });
 
 
-        addWordChannel = new EventChannel(messenger, addWordChannelName);
-        transAndCheckChannel = new EventChannel(messenger, transAndCheckChannelName);
+        setAddWordEvent();
+        setTranslateAndCheckEvent();
+        setTextToSpeechEvent();
+        setOnDismissPopupEvent();
 
+        channel = new MethodChannel(binding.getFlutterEngine().getDartExecutor(), channelName);
+        channel.setMethodCallHandler(this);
+    }
+
+    private void setAddWordEvent () {
+        addWordChannel = new EventChannel(messenger, addWordChannelName);
         addWordChannel.setStreamHandler(new EventChannel.StreamHandler() {
             @Override
             public void onListen(Object o, EventChannel.EventSink eventSink) {
@@ -147,6 +134,10 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
 
             }
         });
+    }
+
+    private void setTranslateAndCheckEvent () {
+        transAndCheckChannel = new EventChannel(messenger, transAndCheckChannelName);
         transAndCheckChannel.setStreamHandler(new EventChannel.StreamHandler() {
             @Override
             public void onListen(Object o, EventChannel.EventSink eventSink) {
@@ -162,9 +153,44 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
 
             }
         });
+    }
 
-        channel = new MethodChannel(binding.getFlutterEngine().getDartExecutor(), channelName);
-        channel.setMethodCallHandler(this);
+    private void setTextToSpeechEvent () {
+        textToSpeechChannel = new EventChannel(messenger, textToSpeechChannel);
+        textToSpeechChannel.setStreamHandler(new EventChannel.StreamHandler() {
+            @Override
+            public void onListen(Object o, EventChannel.EventSink eventSink) {
+
+                textToSpeechSink = eventSink;
+                if (textToSpeechSink == null) {
+                    Log.i("textToSpeechSink", "Sink is empty");
+                }
+            }
+
+            @Override
+            public void onCancel(Object o) {
+
+            }
+        });
+    }
+
+    private void setOnDismissPopupEvent () {
+        onDismissPopupChannel = new EventChannel(messenger, onDismissPopupChannelName);
+        onDismissPopupChannel.setStreamHandler(new EventChannel.StreamHandler() {
+            @Override
+            public void onListen(Object o, EventChannel.EventSink eventSink) {
+
+                onDismissPopupSink = eventSink;
+                if (onDismissPopupSink == null) {
+                    Log.i("onDismissPopupSink", "Sink is empty");
+                }
+            }
+
+            @Override
+            public void onCancel(Object o) {
+
+            }
+        });
     }
 
     @Override
@@ -223,7 +249,13 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
             if (transAndCheckSink == null) {
                 Log.i("transAndCheckSink status", "sink is empty");
             }
-            reader = new Reader(context, messenger, config, sink, addWordSink, transAndCheckSink);
+            if (textToSpeechSink == null) {
+                Log.i("textToSpeechSink status", "sink is empty");
+            }
+            if (onDismissPopupSink == null) {
+                Log.i("onDismissPopupSink status", "sink is empty");
+            }
+            reader = new Reader(context, messenger, config, sink, addWordSink, transAndCheckSink, textToSpeechChannel, onDismissPopupChannel);
             reader.open(bookPath, lastLocation);
 
         } else if (call.method.equals("close")) {
