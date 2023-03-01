@@ -117,7 +117,7 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
         channel.setMethodCallHandler(this);
     }
 
-    private void setAddWordEvent () {
+    private static void setAddWordEvent () {
         addWordChannel = new EventChannel(messenger, addWordChannelName);
         addWordChannel.setStreamHandler(new EventChannel.StreamHandler() {
             @Override
@@ -136,7 +136,7 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
         });
     }
 
-    private void setTranslateAndCheckEvent () {
+    private static void setTranslateAndCheckEvent () {
         transAndCheckChannel = new EventChannel(messenger, transAndCheckChannelName);
         transAndCheckChannel.setStreamHandler(new EventChannel.StreamHandler() {
             @Override
@@ -155,8 +155,8 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
         });
     }
 
-    private void setTextToSpeechEvent () {
-        textToSpeechChannel = new EventChannel(messenger, textToSpeechChannel);
+    private static void setTextToSpeechEvent () {
+        textToSpeechChannel = new EventChannel(messenger, textToSpeechChannelName);
         textToSpeechChannel.setStreamHandler(new EventChannel.StreamHandler() {
             @Override
             public void onListen(Object o, EventChannel.EventSink eventSink) {
@@ -174,7 +174,7 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
         });
     }
 
-    private void setOnDismissPopupEvent () {
+    private static void setOnDismissPopupEvent () {
         onDismissPopupChannel = new EventChannel(messenger, onDismissPopupChannelName);
         onDismissPopupChannel.setStreamHandler(new EventChannel.StreamHandler() {
             @Override
@@ -255,7 +255,7 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
             if (onDismissPopupSink == null) {
                 Log.i("onDismissPopupSink status", "sink is empty");
             }
-            reader = new Reader(context, messenger, config, sink, addWordSink, transAndCheckSink, textToSpeechChannel, onDismissPopupChannel);
+            reader = new Reader(context, messenger, config, sink, addWordSink, transAndCheckSink, textToSpeechSink, onDismissPopupSink);
             reader.open(bookPath, lastLocation);
 
         } else if (call.method.equals("close")) {

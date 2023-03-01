@@ -25,7 +25,8 @@ import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.MethodChannel;
 
 public class Reader implements OnHighlightListener, ReadLocatorListener, FolioReader.OnClosedListener,
-            FolioReader.OnAddWordListener, FolioReader.TranslateAndCheckWordListener {
+            FolioReader.OnAddWordListener, FolioReader.TranslateAndCheckWordListener,
+            FolioReader.TextToSpeechListener, FolioReader.OnDismissPopupListener {
 
     private ReaderConfig readerConfig;
     public FolioReader folioReader;
@@ -243,9 +244,9 @@ public class Reader implements OnHighlightListener, ReadLocatorListener, FolioRe
         Log.v("reader", "-> onDismissPopupListener");
 
         if (onDismissPopupSink != null) {
-            onDismissPopupSink.success(word);
+            onDismissPopupSink.success("dismiss");
         } else {
-            Log.i("reader", "onDismissPopupSink -> Sink is Empty -> " + word);
+            Log.i("reader", "onDismissPopupSink -> Sink is Empty");
 
         }
     }

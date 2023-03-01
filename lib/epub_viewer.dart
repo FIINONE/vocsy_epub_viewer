@@ -18,6 +18,10 @@ class VocsyEpub {
   static const EventChannel _addWordChannel = const EventChannel('add_word');
   static const EventChannel _transAndCheckWordChannel =
       const EventChannel('translate_and_check_word');
+  static const EventChannel _textToSpeechChannel =
+      const EventChannel('text_to_speech');
+  static const EventChannel _onDismissPopupChannel =
+      const EventChannel('on_dismiss_popup');
 
   /// Configure Viewer's with available values
   ///
@@ -102,6 +106,22 @@ class VocsyEpub {
               (event) => event.toString(),
             );
     return addWordStream;
+  }
+
+  static Stream<String> get textToSpeechStream {
+    Stream<String> textStream = _textToSpeechChannel
+        .receiveBroadcastStream()
+        .map((event) => event.toString());
+
+    return textStream;
+  }
+
+  static Stream<String> get onDismissPopupStream {
+    Stream<String> onDismiss = _onDismissPopupChannel
+        .receiveBroadcastStream()
+        .map((event) => event.toString());
+
+    return onDismiss;
   }
 
   static Future<void> sendTransAndCheckWord(
