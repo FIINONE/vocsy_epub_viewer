@@ -2,6 +2,8 @@ package com.vocsy.epub_viewer;
 
 import android.content.Context;
 import android.util.Log;
+import java.util.Map;
+import java.util.HashMap;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -69,7 +71,7 @@ public class Reader implements OnHighlightListener, ReadLocatorListener, FolioRe
         onDismissPopupSink = dismissSink;
     }
 
-    public void open(String bookPath, String lastLocation) {
+    public void open(String bookPath, String lastLocation, int initialPage) {
         final String path = bookPath;
         final String location = lastLocation;
         new Thread(new Runnable() {
@@ -82,7 +84,7 @@ public class Reader implements OnHighlightListener, ReadLocatorListener, FolioRe
                         folioReader.setReadLocator(readLocator);
                     }
                     folioReader.setConfig(readerConfig.config, true)
-                            .openBook(path);
+                            .openBook(path, initialPage);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -186,11 +188,18 @@ public class Reader implements OnHighlightListener, ReadLocatorListener, FolioRe
     }
 
     @Override
-    public void onFolioReaderClosed() {
+    public void onFolioReaderClosed(int currentPage, int totalPage) {
         Log.i("readLocator", "-> saveReadLocator -> " + read_locator.toJson());
+        Log.i("readLocator", "-> saveReadLocator -> " + currentPage + totalPage);
+        final Map<String, Object> data = new HashMap<String, Object>();
 
+        data.put("currentPage", currentPage);
+        data.put("totalPage", totalPage);
+        data.put("readLocator", read_locator.toJson());
+
+        
         if (pageEventSink != null) {
-            pageEventSink.success(read_locator.toJson());
+            pageEventSink.success(data);
         }
     }
 

@@ -237,6 +237,7 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
             Map<String, Object> arguments = (Map<String, Object>) call.arguments;
             String bookPath = arguments.get("bookPath").toString();
             String lastLocation = arguments.get("lastLocation").toString();
+            final int initialPage = (Integer) arguments.get("initialPage");
 
             Log.i("opening", "In open function");
 
@@ -256,7 +257,7 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
                 Log.i("onDismissPopupSink status", "sink is empty");
             }
             reader = new Reader(context, messenger, config, sink, addWordSink, transAndCheckSink, textToSpeechSink, onDismissPopupSink);
-            reader.open(bookPath, lastLocation);
+            reader.open(bookPath, lastLocation, initialPage);
 
         } else if (call.method.equals("close")) {
             reader.close();
