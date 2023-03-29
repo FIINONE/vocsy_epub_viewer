@@ -40,15 +40,16 @@ public class Reader implements OnHighlightListener, ReadLocatorListener, FolioRe
     private ReadLocator read_locator;
     private static final String PAGE_CHANNEL = "sage";
 
+    private EventChannel.EventSink epubClosedSink;
     private EventChannel.EventSink addWordSink;
     private EventChannel.EventSink translateAndCheckSink;
     private EventChannel.EventSink textToSpeechSink;
     private EventChannel.EventSink onDismissPopupSink;
 
     Reader(Context context, BinaryMessenger messenger, ReaderConfig config, 
-        EventChannel.EventSink sink, EventChannel.EventSink addSink,
-        EventChannel.EventSink sendWordSink, EventChannel.EventSink textSpeechSing,
-        EventChannel.EventSink dismissSink) {
+        EventChannel.EventSink sink, EventChannel.EventSink closeSink,
+        EventChannel.EventSink addSink, EventChannel.EventSink sendWordSink,
+        EventChannel.EventSink textSpeechSing, EventChannel.EventSink dismissSink) {
         this.context = context;
         readerConfig = config;
 
@@ -65,13 +66,14 @@ public class Reader implements OnHighlightListener, ReadLocatorListener, FolioRe
                 .setOnDismissPopupListener(this);
 
         pageEventSink = sink;
+        epubClosedSink = closeSink;
         addWordSink = addSink;
         translateAndCheckSink = sendWordSink;
         textToSpeechSink = textSpeechSing;
         onDismissPopupSink = dismissSink;
     }
 
-    public void open(String bookPath, String lastLocation, int initialPage) {
+    public void open(String bookPath, String lastLocation) {
         final String path = bookPath;
         final String location = lastLocation;
         new Thread(new Runnable() {
@@ -84,7 +86,7 @@ public class Reader implements OnHighlightListener, ReadLocatorListener, FolioRe
                         folioReader.setReadLocator(readLocator);
                     }
                     folioReader.setConfig(readerConfig.config, true)
-                            .openBook(path, initialPage);
+                            .openBook(path);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -198,8 +200,8 @@ public class Reader implements OnHighlightListener, ReadLocatorListener, FolioRe
         data.put("readLocator", read_locator.toJson());
 
         
-        if (pageEventSink != null) {
-            pageEventSink.success(data);
+        if (epubClosedSink != null) {
+            epubClosedSink.success(data);
         }
     }
 

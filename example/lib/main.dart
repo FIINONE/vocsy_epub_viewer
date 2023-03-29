@@ -97,7 +97,6 @@ class _MyAppState extends State<MyApp> {
 
                           VocsyEpub.open(
                             filePath,
-                            0,
                             lastLocation: EpubLocator.fromJson({
                               "bookId": "2239",
                               "href": "/OEBPS/ch06.xhtml",

@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -14,6 +13,8 @@ part 'utils/util.dart';
 class VocsyEpub {
   static const MethodChannel _channel =
       const MethodChannel('vocsy_epub_viewer');
+  static const EventChannel _epubClosedChannel =
+      const EventChannel('epub_closed');
   static const EventChannel _pageChannel = const EventChannel('page');
   static const EventChannel _addWordChannel = const EventChannel('add_word');
   static const EventChannel _transAndCheckWordChannel =
@@ -49,10 +50,9 @@ class VocsyEpub {
 
   /// bookPath should be a local file.
   /// Last location is only available for android.
-  static void open(String bookPath, int initialPage, {EpubLocator? lastLocation}) async {
+  static void open(String bookPath, {EpubLocator? lastLocation}) async {
     Map<String, dynamic> agrs = {
       "bookPath": bookPath,
-      'initialPage': initialPage,
       'lastLocation':
           lastLocation == null ? '' : jsonEncode(lastLocation.toJson()),
     };
@@ -83,6 +83,14 @@ class VocsyEpub {
 
   static Future setChannel() async {
     await _channel.invokeMethod('setChannel');
+  }
+
+  ///Epub closed event
+  static Stream get epubClosed {
+    Stream epubClosedStream =
+        _epubClosedChannel.receiveBroadcastStream().map((value) => value);
+
+    return epubClosedStream;
   }
 
   /// Stream to get EpubLocator for android and pageNumber for iOS

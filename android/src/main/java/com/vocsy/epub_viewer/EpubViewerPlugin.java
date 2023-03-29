@@ -36,6 +36,10 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
     static private EventChannel.EventSink sink;
     private static final String channelName = "vocsy_epub_viewer";
 
+    static private EventChannel epubClosedChannel;
+    static private EventChannel.EventSink epubClosedSink;
+    private static final String epubClosedChannelName = "epub_closed";
+
     static private EventChannel addWordChannel;
     static private EventChannel.EventSink addWordSink;
     private static final String addWordChannelName = "add_word";
@@ -77,6 +81,7 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
             }
         });
 
+        setEpubClosedEvent();
         setAddWordEvent();
         setTranslateAndCheckEvent();
         setTextToSpeechEvent();
@@ -108,6 +113,7 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
         });
 
 
+        setEpubClosedEvent();
         setAddWordEvent();
         setTranslateAndCheckEvent();
         setTextToSpeechEvent();
@@ -115,6 +121,25 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
 
         channel = new MethodChannel(binding.getFlutterEngine().getDartExecutor(), channelName);
         channel.setMethodCallHandler(this);
+    }
+
+    private static void setEpubClosedEvent () {
+        epubClosedChannel = new EventChannel(messenger, epubClosedChannelName);
+        epubClosedChannel.setStreamHandler(new EventChannel.StreamHandler() {
+            @Override
+            public void onListen(Object o, EventChannel.EventSink eventSink) {
+
+                epubClosedSink = eventSink;
+                if (epubClosedSink == null) {
+                    Log.i("epubClosedSink", "Sink is empty");
+                }
+            }
+
+            @Override
+            public void onCancel(Object o) {
+
+            }
+        });
     }
 
     private static void setAddWordEvent () {
@@ -237,12 +262,14 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
             Map<String, Object> arguments = (Map<String, Object>) call.arguments;
             String bookPath = arguments.get("bookPath").toString();
             String lastLocation = arguments.get("lastLocation").toString();
-            final int initialPage = (Integer) arguments.get("initialPage");
 
             Log.i("opening", "In open function");
 
             if (sink == null) {
                 Log.i("sink status", "sink is empty");
+            }
+            if (epubClosedSink == null) {
+                Log.i("epubClosedSink status", "sink is empty");
             }
             if (addWordSink == null) {
                 Log.i("addWordSink status", "sink is empty");
@@ -256,8 +283,8 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
             if (onDismissPopupSink == null) {
                 Log.i("onDismissPopupSink status", "sink is empty");
             }
-            reader = new Reader(context, messenger, config, sink, addWordSink, transAndCheckSink, textToSpeechSink, onDismissPopupSink);
-            reader.open(bookPath, lastLocation, initialPage);
+            reader = new Reader(context, messenger, config, sink, epubClosedSink, addWordSink, transAndCheckSink, textToSpeechSink, onDismissPopupSink);
+            reader.open(bookPath, lastLocation);
 
         } else if (call.method.equals("close")) {
             reader.close();
