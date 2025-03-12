@@ -209,10 +209,10 @@
       "name": "vocsy_epub_viewer",
       "rootUri": "../",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "3.3"
     }
   ],
-  "generated": "2025-03-12T15:03:02.669049Z",
+  "generated": "2025-03-12T17:36:02.359046Z",
   "generator": "pub",
   "generatorVersion": "3.7.0",
   "flutterRoot": "file:///C:/src/flutter",
