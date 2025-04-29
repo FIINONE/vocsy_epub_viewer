@@ -105,7 +105,11 @@
     },
     {
       "name": "path_provider_android",
+<<<<<<< HEAD
       "rootUri": "file:///C:/Users/admin/AppData/Local/Pub/Cache/hosted/pub.dev/path_provider_android-2.2.16",
+=======
+      "rootUri": "file:///C:/Users/admin/AppData/Local/Pub/Cache/hosted/pub.dev/path_provider_android-2.2.17",
+>>>>>>> register
       "packageUri": "lib/",
       "languageVersion": "3.6"
     },
@@ -212,10 +216,18 @@
       "languageVersion": "3.3"
     }
   ],
+<<<<<<< HEAD
   "generated": "2025-03-12T18:54:28.497816Z",
   "generator": "pub",
   "generatorVersion": "3.7.0",
   "flutterRoot": "file:///C:/src/flutter",
   "flutterVersion": "3.29.1",
+=======
+  "generated": "2025-04-29T07:24:19.940171Z",
+  "generator": "pub",
+  "generatorVersion": "3.7.2",
+  "flutterRoot": "file:///C:/src/flutter",
+  "flutterVersion": "3.29.3",
+>>>>>>> register
   "pubCache": "file:///C:/Users/admin/AppData/Local/Pub/Cache"
 }
