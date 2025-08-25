@@ -28,6 +28,7 @@ class Util {
     String dir = (await getTemporaryDirectory()).path;
     String path = '$dir/${basename(asset)}';
     final buffer = data.buffer;
-    return File(path).writeAsBytes(buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
+    return File(path).writeAsBytes(
+        buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
   }
 }
