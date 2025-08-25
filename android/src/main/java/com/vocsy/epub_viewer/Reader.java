@@ -2,6 +2,8 @@ package com.vocsy.epub_viewer;
 
 import android.content.Context;
 import android.util.Log;
+import java.util.Map;
+import java.util.HashMap;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,7 +26,9 @@ import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.MethodChannel;
 
-public class Reader implements OnHighlightListener, ReadLocatorListener, FolioReader.OnClosedListener {
+public class Reader implements OnHighlightListener, ReadLocatorListener, FolioReader.OnClosedListener,
+            FolioReader.OnAddWordListener, FolioReader.TranslateAndCheckWordListener,
+            FolioReader.TextToSpeechListener, FolioReader.OnDismissPopupListener {
 
     private ReaderConfig readerConfig;
     public FolioReader folioReader;
@@ -36,7 +40,16 @@ public class Reader implements OnHighlightListener, ReadLocatorListener, FolioRe
     private ReadLocator read_locator;
     private static final String PAGE_CHANNEL = "sage";
 
-    Reader(Context context, BinaryMessenger messenger, ReaderConfig config, EventChannel.EventSink sink) {
+    private EventChannel.EventSink epubClosedSink;
+    private EventChannel.EventSink addWordSink;
+    private EventChannel.EventSink translateAndCheckSink;
+    private EventChannel.EventSink textToSpeechSink;
+    private EventChannel.EventSink onDismissPopupSink;
+
+    Reader(Context context, BinaryMessenger messenger, ReaderConfig config, 
+        EventChannel.EventSink sink, EventChannel.EventSink closeSink,
+        EventChannel.EventSink addSink, EventChannel.EventSink sendWordSink,
+        EventChannel.EventSink textSpeechSing, EventChannel.EventSink dismissSink) {
         this.context = context;
         readerConfig = config;
 
@@ -46,8 +59,18 @@ public class Reader implements OnHighlightListener, ReadLocatorListener, FolioRe
         folioReader = FolioReader.get()
                 .setOnHighlightListener(this)
                 .setReadLocatorListener(this)
-                .setOnClosedListener(this);
+                .setOnClosedListener(this)
+                .setOnAddWordListener(this)
+                .setTranslateAndCheckListener(this)
+                .setTextToSpeechListener(this)
+                .setOnDismissPopupListener(this);
+
         pageEventSink = sink;
+        epubClosedSink = closeSink;
+        addWordSink = addSink;
+        translateAndCheckSink = sendWordSink;
+        textToSpeechSink = textSpeechSing;
+        onDismissPopupSink = dismissSink;
     }
 
     public void open(String bookPath, String lastLocation) {
@@ -167,11 +190,18 @@ public class Reader implements OnHighlightListener, ReadLocatorListener, FolioRe
     }
 
     @Override
-    public void onFolioReaderClosed() {
+    public void onFolioReaderClosed(int currentPage, int totalPage) {
         Log.i("readLocator", "-> saveReadLocator -> " + read_locator.toJson());
+        Log.i("readLocator", "-> saveReadLocator -> " + currentPage + totalPage);
+        final Map<String, Object> data = new HashMap<String, Object>();
 
-        if (pageEventSink != null) {
-            pageEventSink.success(read_locator.toJson());
+        data.put("currentPage", currentPage);
+        data.put("totalPage", totalPage);
+        data.put("readLocator", read_locator.toJson());
+
+        
+        if (epubClosedSink != null) {
+            epubClosedSink.success(data);
         }
     }
 
@@ -185,5 +215,55 @@ public class Reader implements OnHighlightListener, ReadLocatorListener, FolioRe
         read_locator = readLocator;
     }
 
+    @Override
+    public void onAddWordListener(String word) {
+        Log.i("reader", "-> onAddWordListener -> " + word);
 
+        if (addWordSink != null) {
+            addWordSink.success(word);
+        } else {
+            Log.i("reader", "addWordSink -> Sink is Empty -> " + word);
+        }
+    }
+
+    @Override
+    public void translateAndCheckWordListener(String word) {
+        Log.i("reader", "-> translateAndCheckWordListener ->" + word);
+
+        if (translateAndCheckSink != null) {
+            translateAndCheckSink.success(word);
+        } else {
+            Log.i("reader", "translateAndCheckSink -> Sink is Empty -> " + word);
+
+        }
+    }
+
+    @Override
+    public void textToSpeechListener(String word) {
+        Log.v("reader", "-> textToSpeechListener ->" + word);
+        
+        if (textToSpeechSink != null) {
+            textToSpeechSink.success(word);
+        } else {
+            Log.i("reader", "textToSpeechSink -> Sink is Empty -> " + word);
+
+        }
+    }
+
+    @Override
+    public void onDismissPopupListener() {
+        Log.v("reader", "-> onDismissPopupListener");
+
+        if (onDismissPopupSink != null) {
+            onDismissPopupSink.success("dismiss");
+        } else {
+            Log.i("reader", "onDismissPopupSink -> Sink is Empty");
+
+        }
+    }
+
+    public void sendTranslateAndCheckWord(String translate, boolean wordExist) {
+        Log.i("send word", "-> sendTranslateAndCheckWord -> " + translate + wordExist);
+        folioReader.sendTranslateAndCheckWord(translate, wordExist);
+    }
 }

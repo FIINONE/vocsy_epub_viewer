@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -12,8 +11,18 @@ part 'model/epub_locator.dart';
 part 'utils/util.dart';
 
 class VocsyEpub {
-  static const MethodChannel _channel = const MethodChannel('vocsy_epub_viewer');
+  static const MethodChannel _channel =
+      const MethodChannel('vocsy_epub_viewer');
+  static const EventChannel _epubClosedChannel =
+      const EventChannel('epub_closed');
   static const EventChannel _pageChannel = const EventChannel('page');
+  static const EventChannel _addWordChannel = const EventChannel('add_word');
+  static const EventChannel _transAndCheckWordChannel =
+      const EventChannel('translate_and_check_word');
+  static const EventChannel _textToSpeechChannel =
+      const EventChannel('text_to_speech');
+  static const EventChannel _onDismissPopupChannel =
+      const EventChannel('on_dismiss_popup');
 
   /// Configure Viewer's with available values
   ///
@@ -44,7 +53,8 @@ class VocsyEpub {
   static void open(String bookPath, {EpubLocator? lastLocation}) async {
     Map<String, dynamic> agrs = {
       "bookPath": bookPath,
-      'lastLocation': lastLocation == null ? '' : jsonEncode(lastLocation.toJson()),
+      'lastLocation':
+          lastLocation == null ? '' : jsonEncode(lastLocation.toJson()),
     };
     _channel.invokeMethod('setChannel');
     await _channel.invokeMethod('open', agrs);
@@ -61,7 +71,8 @@ class VocsyEpub {
     if (extension(bookPath) == '.epub') {
       Map<String, dynamic> agrs = {
         "bookPath": (await Util.getFileFromAsset(bookPath)).path,
-        'lastLocation': lastLocation == null ? '' : jsonEncode(lastLocation.toJson()),
+        'lastLocation':
+            lastLocation == null ? '' : jsonEncode(lastLocation.toJson()),
       };
       _channel.invokeMethod('setChannel');
       await _channel.invokeMethod('open', agrs);
@@ -74,11 +85,61 @@ class VocsyEpub {
     await _channel.invokeMethod('setChannel');
   }
 
+  ///Epub closed event
+  static Stream get epubClosed {
+    Stream epubClosedStream =
+        _epubClosedChannel.receiveBroadcastStream().map((value) => value);
+
+    return epubClosedStream;
+  }
+
   /// Stream to get EpubLocator for android and pageNumber for iOS
   static Stream get locatorStream {
     print("In stream");
-    Stream pageStream = _pageChannel.receiveBroadcastStream().map((value) => value);
+    Stream pageStream =
+        _pageChannel.receiveBroadcastStream().map((value) => value);
 
     return pageStream;
+  }
+
+  static Stream<String> get addWordStream {
+    Stream<String> addWordStream = _addWordChannel.receiveBroadcastStream().map(
+          (event) => event.toString(),
+        );
+    return addWordStream;
+  }
+
+  static Stream<String> get transAndCheckWordStream {
+    Stream<String> addWordStream =
+        _transAndCheckWordChannel.receiveBroadcastStream().map(
+              (event) => event.toString(),
+            );
+    return addWordStream;
+  }
+
+  static Stream<String> get textToSpeechStream {
+    Stream<String> textStream = _textToSpeechChannel
+        .receiveBroadcastStream()
+        .map((event) => event.toString());
+
+    return textStream;
+  }
+
+  static Stream<String> get onDismissPopupStream {
+    Stream<String> onDismiss = _onDismissPopupChannel
+        .receiveBroadcastStream()
+        .map((event) => event.toString());
+
+    return onDismiss;
+  }
+
+  static Future<void> sendTransAndCheckWord(
+      String translate, bool wordExist) async {
+    Map<String, dynamic> args = {
+      "translate": translate,
+      "wordExist": wordExist,
+    };
+
+    await _channel.invokeMethod('send_word', args);
   }
 }
