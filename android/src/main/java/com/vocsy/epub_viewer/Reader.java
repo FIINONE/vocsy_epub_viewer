@@ -82,7 +82,7 @@ public class Reader implements OnHighlightListener, ReadLocatorListener, FolioRe
                 try {
                     Log.i("SavedLocation", "-> savedLocation -> " + location);
                     if (location != null && !location.isEmpty()) {
-                        ReadLocator readLocator = ReadLocator.fromJson(location);
+                        ReadLocator readLocator = ReadLocator.Companion.fromJson(location);
                         folioReader.setReadLocator(readLocator);
                     }
                     folioReader.setConfig(readerConfig.config, true)
@@ -134,13 +134,13 @@ public class Reader implements OnHighlightListener, ReadLocatorListener, FolioRe
         new Thread(new Runnable() {
             @Override
             public void run() {
-                ArrayList<HighLight> highlightList = null;
+                List<HighLight> highlightList = null;
                 ObjectMapper objectMapper = new ObjectMapper();
                 try {
                     highlightList = objectMapper.readValue(
                             loadAssetTextAsString("highlights/highlights_data.json"),
-                            new TypeReference<List<HighlightData>>() {
-                            });
+                            new TypeReference<List<HighLight>>() {}
+                    );
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -149,7 +149,7 @@ public class Reader implements OnHighlightListener, ReadLocatorListener, FolioRe
                     folioReader.saveReceivedHighLights(highlightList, new OnSaveHighlight() {
                         @Override
                         public void onFinished() {
-                            //You can do anything on successful saving highlight list
+                            // Do something on success
                         }
                     });
                 }
@@ -190,14 +190,14 @@ public class Reader implements OnHighlightListener, ReadLocatorListener, FolioRe
     }
 
     @Override
-    public void onFolioReaderClosed(int currentPage, int totalPage) {
-        Log.i("readLocator", "-> saveReadLocator -> " + read_locator.toJson());
+    public void onFolioReaderClosed(int currentPage, int totalPage, String locator) {
+        Log.i("readLocator", "-> saveReadLocator -> " + locator);
         Log.i("readLocator", "-> saveReadLocator -> " + currentPage + totalPage);
         final Map<String, Object> data = new HashMap<String, Object>();
 
         data.put("currentPage", currentPage);
         data.put("totalPage", totalPage);
-        data.put("readLocator", read_locator.toJson());
+        data.put("readLocator", locator);
 
         
         if (epubClosedSink != null) {
