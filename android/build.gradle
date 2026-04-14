@@ -46,6 +46,9 @@ dependencies {
 
 configurations.all {
     resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+
+    force 'org.nanohttpd:nanohttpd:2.3.1'
+    force 'org.nanohttpd:nanohttpd-nanolets:2.3.1'
 }
 
 
