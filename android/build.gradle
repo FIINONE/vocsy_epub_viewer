@@ -37,6 +37,8 @@ android {
 
 dependencies {
     implementation 'com.github.FIINONE:vocsy_epub_viewer_android_folioreader:master-SNAPSHOT'
+    implementation 'com.github.NanoHttpd.nanohttpd:nanohttpd:fd80618e93d'
+    implementation 'com.github.NanoHttpd.nanohttpd:nanohttpd-nanolets:fd80618e93d'
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.9.8'
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.7'
     implementation"org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
@@ -47,6 +49,5 @@ dependencies {
 configurations.all {
     resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
 }
-
 
 
