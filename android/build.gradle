@@ -36,7 +36,10 @@ android {
 }
 
 dependencies {
-    implementation 'com.github.FIINONE:vocsy_epub_viewer_android_folioreader:master-SNAPSHOT'
+    implementation('com.github.FIINONE:vocsy_epub_viewer_android_folioreader:master-SNAPSHOT') {
+        exclude group: 'com.github.NanoHttpd.nanohttpd', module: 'nanohttpd'
+        exclude group: 'com.github.NanoHttpd.nanohttpd', module: 'nanohttpd-nanolets'
+    }
     implementation 'org.nanohttpd:nanohttpd:2.3.1'
     implementation 'org.nanohttpd:nanohttpd-nanolets:2.3.1'
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.9.8'
@@ -48,8 +51,4 @@ dependencies {
 
 configurations.all {
     resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
-    resolutionStrategy.dependencySubstitution {
-        substitute module('com.github.NanoHttpd.nanohttpd:nanohttpd') using module('org.nanohttpd:nanohttpd:2.3.1')
-        substitute module('com.github.NanoHttpd.nanohttpd:nanohttpd-nanolets') using module('org.nanohttpd:nanohttpd-nanolets:2.3.1')
-    }
 }
