@@ -49,8 +49,7 @@ dependencies {
 configurations.all {
     resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
     resolutionStrategy.dependencySubstitution {
-        substitute module('com.github.NanoHttpd.nanohttpd:nanohttpd') with module('org.nanohttpd:nanohttpd:2.3.1')
-        substitute module('com.github.NanoHttpd.nanohttpd:nanohttpd-nanolets') with module('org.nanohttpd:nanohttpd-nanolets:2.3.1')
+        substitute module('com.github.NanoHttpd.nanohttpd:nanohttpd') using module('org.nanohttpd:nanohttpd:2.3.1')
+        substitute module('com.github.NanoHttpd.nanohttpd:nanohttpd-nanolets') using module('org.nanohttpd:nanohttpd-nanolets:2.3.1')
     }
 }
-
