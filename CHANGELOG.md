@@ -1,3 +1,19 @@
+## 4.0.0 (Unreleased)
+
+Android:
+* **Breaking:** `minSdk` is now 24.
+* **Breaking:** the app must have `android.enableJetifier=true` (needed by the reader's
+  bookmark/highlight lists).
+* FolioReader is now built from sources inside the plugin instead of the
+  `com.github.FIINONE:vocsy_epub_viewer_android_folioreader` JitPack artifact.
+* r2-shared/r2-streamer 1.0.4-2 are bundled in `android/maven`; JitPack and JCenter are no longer
+  used.
+* The plugin ships R8 keep rules, so release builds no longer need `minifyEnabled false`.
+* Reader activities are no longer exported; unused `READ_MEDIA_*` permissions and
+  `requestLegacyExternalStorage` were removed from the manifest.
+* Builds with AGP 8 / Kotlin 2.x and relies on Flutter to apply the Kotlin Gradle plugin.
+* Removed the unused bundled `3.epub` asset and 12 empty font files.
+
 ## 3.0.0
 * LATEST ANDROID VERSION SUPPORT!
 
