@@ -95,9 +95,10 @@ dependencies {
     implementation 'org.nanohttpd:nanohttpd:2.3.1'
     implementation 'org.nanohttpd:nanohttpd-nanolets:2.3.1'
 
-    // Vendored, see maven/.
-    implementation 'com.github.codetoart:r2-shared-kotlin:1.0.4-2'
-    implementation 'com.github.codetoart:r2-streamer-kotlin:1.0.4-2'
+    // Vendored copies of com.github.codetoart:r2-*-kotlin, see maven/. They use their own groupId so
+    // that a jitpack.io repository added by other plugins can't serve the original POMs instead.
+    implementation 'com.vocsy.epub_viewer.vendored:r2-shared-kotlin:1.0.4-2'
+    implementation 'com.vocsy.epub_viewer.vendored:r2-streamer-kotlin:1.0.4-2'
 
     testImplementation 'junit:junit:4.13.2'
 }
