@@ -38,6 +38,8 @@ android {
 
     defaultConfig {
         minSdkVersion 24
+        // Keep rules for reflection used by the reader, r2-streamer and their dependencies.
+        consumerProguardFiles 'consumer-rules.pro'
     }
 
     compileOptions {
