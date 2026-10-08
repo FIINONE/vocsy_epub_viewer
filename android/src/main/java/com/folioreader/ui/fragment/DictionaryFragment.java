@@ -73,7 +73,7 @@ public class DictionaryFragment extends DialogFragment
     @Override
     public void onActivityCreated(Bundle arg0) {
         super.onActivityCreated(arg0);
-        getDialog().getWindow().getAttributes().windowAnimations = R.style.DialogAnimation;
+        getDialog().getWindow().getAttributes().windowAnimations = R.style.FolioDialogAnimation;
     }
 
     @Nullable

@@ -6,8 +6,10 @@ import android.content.Intent
 import android.graphics.Color
 import android.graphics.PorterDuff
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
+import android.os.Looper
 import android.os.Parcelable
 import android.text.TextUtils
 import android.util.Log
@@ -20,10 +22,12 @@ import android.webkit.*
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.viewpager.widget.ViewPager
+import com.folioreader.AppContext
 import com.folioreader.Config
 import com.folioreader.FolioReader
 import com.folioreader.R
@@ -77,6 +81,7 @@ class FolioPageFragment(private var pageViewModel: PageTrackerViewModel) : Fragm
         private const val BUNDLE_READ_LOCATOR_CONFIG_CHANGE = "BUNDLE_READ_LOCATOR_CONFIG_CHANGE"
         const val BUNDLE_SEARCH_LOCATOR = "BUNDLE_SEARCH_LOCATOR"
         private const val BUNDLE_VIEW_MODEL = "BUNDLE_VIEW_MODEL"
+        private const val READ_LOCATOR_UPDATE_DELAY_MS = 1000L
 
         @JvmStatic
         fun newInstance(
@@ -144,6 +149,25 @@ class FolioPageFragment(private var pageViewModel: PageTrackerViewModel) : Fragm
         get() {
             return isAdded && mActivityCallback!!.currentChapterIndex == spineIndex
         }
+
+    // Recomputes the read position (via storeLastReadCfi) once the page has settled, so the locator
+    // reported when the reader closes is current: a computation started on close may never finish
+    // because the WebView is destroyed right after onStop.
+    private val updateReadLocatorRunnable = Runnable {
+        if (!isCurrentFragment) return@Runnable
+        val isPageLoading = loadingView == null || loadingView!!.visibility == View.VISIBLE
+        if (isPageLoading) {
+            scheduleReadLocatorUpdate()
+        } else {
+            mWebview?.loadUrl(getString(R.string.callComputeLastReadCfi))
+        }
+    }
+
+    fun scheduleReadLocatorUpdate() {
+        if (!::uiHandler.isInitialized) return
+        uiHandler.removeCallbacks(updateReadLocatorRunnable)
+        uiHandler.postDelayed(updateReadLocatorRunnable, READ_LOCATOR_UPDATE_DELAY_MS)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -424,6 +448,7 @@ class FolioPageFragment(private var pageViewModel: PageTrackerViewModel) : Fragm
                 setIndicatorVisibility()
                 mScrollSeekbar!!.setProgressAndThumb(percent)
                 updatePagesLeftText(percent)
+                scheduleReadLocatorUpdate()
             }
         })
 
@@ -435,6 +460,18 @@ class FolioPageFragment(private var pageViewModel: PageTrackerViewModel) : Fragm
     }
 
     private val webViewClient = object : WebViewClient() {
+
+        // Without this override a dead WebView renderer (crash or OOM kill) makes WebView abort the
+        // whole host app. The renderer is shared by all reader pages, so the reader can't continue:
+        // drop this WebView and close the reader instead.
+        @RequiresApi(Build.VERSION_CODES.O)
+        override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean {
+            Log.e(LOG_TAG, "-> onRenderProcessGone -> didCrash = ${detail.didCrash()}")
+            (view.parent as? ViewGroup)?.removeView(view)
+            view.destroy()
+            activity?.finish()
+            return true
+        }
 
         override fun onPageFinished(view: WebView, url: String) {
 
@@ -458,6 +495,9 @@ class FolioPageFragment(private var pageViewModel: PageTrackerViewModel) : Fragm
             if (!rangy.isEmpty())
                 loadRangy(rangy)
 
+            // A freshly loaded chapter may not scroll at all (e.g. it starts at the top).
+            scheduleReadLocatorUpdate()
+
             if (mIsPageReloaded) {
 
                 if (searchLocatorVisible != null) {
@@ -468,8 +508,13 @@ class FolioPageFragment(private var pageViewModel: PageTrackerViewModel) : Fragm
                     mWebview!!.loadUrl(callHighlightSearchLocator)
 
                 } else if (isCurrentFragment) {
-                    val cfi = lastReadLocator!!.locations.cfi
-                    mWebview!!.loadUrl(String.format(getString(R.string.callScrollToCfi), cfi))
+                    // The position is computed asynchronously and may not be known yet.
+                    val cfi = lastReadLocator?.locations?.cfi
+                    if (cfi != null) {
+                        mWebview!!.loadUrl(String.format(getString(R.string.callScrollToCfi), cfi))
+                    } else {
+                        loadingView!!.hide()
+                    }
 
                 } else {
                     if (spineIndex == mActivityCallback!!.currentChapterIndex - 1) {
@@ -635,6 +680,16 @@ class FolioPageFragment(private var pageViewModel: PageTrackerViewModel) : Fragm
 
     fun getLastReadLocator(): ReadLocator? {
         Log.v(LOG_TAG, "-> getLastReadLocator -> " + spineItem.href!!)
+
+        // WebView runs a javascript: URL through the main thread, so waiting for the answer on the
+        // main thread can never succeed: it always timed out after 5 s and froze the UI (ANR).
+        // Trigger the computation and return the last known locator; storeLastReadCfi() updates it
+        // and broadcasts ACTION_SAVE_READ_LOCATOR when the result arrives.
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            mWebview?.loadUrl(getString(R.string.callComputeLastReadCfi))
+            return lastReadLocator
+        }
+
         try {
             synchronized(this) {
                 mWebview!!.loadUrl(getString(R.string.callComputeLastReadCfi))
@@ -660,7 +715,8 @@ class FolioPageFragment(private var pageViewModel: PageTrackerViewModel) : Fragm
 
             val intent = Intent(FolioReader.ACTION_SAVE_READ_LOCATOR)
             intent.putExtra(FolioReader.EXTRA_READ_LOCATOR, lastReadLocator as Parcelable?)
-            LocalBroadcastManager.getInstance(context!!).sendBroadcast(intent)
+            // The JS callback can arrive after the fragment is detached (e.g. right after onStop).
+            LocalBroadcastManager.getInstance(context ?: AppContext.get()).sendBroadcast(intent)
 
             (this as java.lang.Object).notify()
         }
@@ -813,6 +869,7 @@ class FolioPageFragment(private var pageViewModel: PageTrackerViewModel) : Fragm
     }
 
     override fun onDestroyView() {
+        uiHandler.removeCallbacks(updateReadLocatorRunnable)
         mFadeInAnimation!!.setAnimationListener(null)
         mFadeOutAnimation!!.setAnimationListener(null)
         EventBus.getDefault().unregister(this)

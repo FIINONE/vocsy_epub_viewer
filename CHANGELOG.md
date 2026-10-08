@@ -1,3 +1,31 @@
+## 4.0.1 (2026-10-08)
+
+Android:
+* Fixed the reader toolbar showing an overflow menu (three dots) with dead buttons when the app
+  also uses `flutter_inappwebview`: its `menu_main` resource replaced the reader's. Reader resources
+  with generic names are now prefixed (`folio_menu_main`, `folio_menu_search`, `folio_ic_share`,
+  `FolioDialogAnimation`).
+* Fixed a crash of the whole app when the WebView renderer process dies (crash or out of memory):
+  the reader now handles `onRenderProcessGone` and closes itself.
+* Fixed 5-second UI freezes (ANR) when changing the font, adding a bookmark, changing the scroll
+  direction or closing the reader: the last read position is no longer awaited on the main thread.
+* The local book server now answers 404 for unknown paths instead of throwing a
+  `NullPointerException`.
+* Security: the local book server now listens on `127.0.0.1` only. Previously it listened on all
+  network interfaces, so while the reader was open the book could be downloaded by any device on
+  the same network.
+* Fixed `epubClosed` reporting the position the book was opened at instead of where the user
+  stopped reading. The reader now keeps the position up to date while reading (after scrolling
+  settles and after changing chapters) and reports the latest one on close.
+* Opening a book without `lastLocation` no longer reuses the previous book's position.
+* The Android side now answers every method-channel call, so the Futures returned by
+  `setConfig`/`open`/`openAsset`/`closeReader`/`setChannel`/`sendTransAndCheckWord` complete
+  instead of hanging forever. `closeReader()` and `sendTransAndCheckWord()` before a book was
+  opened are now no-ops instead of failing with a `NullPointerException`.
+* Removed leftover sample code that loaded highlights from a bundled `highlights_data.json` on a
+  background thread. It never saved anything (the file was empty and the condition inverted), but
+  any exception in it crashed the app — e.g. in release builds with R8.
+
 ## 4.0.0 (2026-10-08)
 
 Android:

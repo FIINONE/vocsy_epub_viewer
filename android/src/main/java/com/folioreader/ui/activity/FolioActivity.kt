@@ -421,7 +421,9 @@ class FolioActivity : AppCompatActivity(), FolioActivityCallback, MediaControlle
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         try {
             createdMenu = menu
-            menuInflater.inflate(R.menu.menu_main, menu)
+            // folio_ prefix: Android resources have no namespaces, and a generic "menu_main" from
+            // another library (e.g. flutter_inappwebview) silently replaced this menu.
+            menuInflater.inflate(R.menu.folio_menu_main, menu)
 
             val config = AppUtil.getSavedConfig(applicationContext)!!
 
@@ -1043,6 +1045,10 @@ class FolioActivity : AppCompatActivity(), FolioActivityCallback, MediaControlle
                         folioPageFragment.scrollToFirst()
                         if (folioPageFragment.mWebview != null) folioPageFragment.mWebview!!.dismissPopupWindow()
                     }
+
+                    // The new chapter becomes the read position even if the user doesn't scroll it.
+                    (mFolioPageFragmentAdapter!!.getItem(position) as FolioPageFragment?)
+                        ?.scheduleReadLocatorUpdate()
                 }
             }
         })

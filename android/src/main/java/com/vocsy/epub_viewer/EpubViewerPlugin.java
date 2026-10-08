@@ -207,6 +207,8 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
         activity = null;
     }
 
+    // Every handled call must be answered, otherwise the Future returned by invokeMethod() on the
+    // Dart side never completes (and the pending reply is kept forever).
     @Override
     public void onMethodCall(MethodCall call, Result result) {
 
@@ -220,6 +222,7 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
             Boolean enableTts = Boolean.parseBoolean(arguments.get("enableTts").toString());
             config = new ReaderConfig(context, identifier, themeColor,
                     scrollDirection, allowSharing, enableTts, nightMode);
+            result.success(null);
 
         } else if (call.method.equals("open")) {
 
@@ -249,9 +252,15 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
             }
             reader = new Reader(context, messenger, config, sink, epubClosedSink, addWordSink, transAndCheckSink, textToSpeechSink, onDismissPopupSink);
             reader.open(bookPath, lastLocation);
+            // The reader is started asynchronously; the call completes once the open is scheduled.
+            result.success(null);
 
         } else if (call.method.equals("close")) {
-            reader.close();
+            // Nothing to close if no book has been opened yet.
+            if (reader != null) {
+                reader.close();
+            }
+            result.success(null);
         } else if (call.method.equals("setChannel")) {
             eventChannel = new EventChannel(messenger, "page");
             eventChannel.setStreamHandler(new EventChannel.StreamHandler() {
@@ -267,12 +276,17 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
 
                 }
             });
+            result.success(null);
         } else if (call.method.equals("send_word")) {
             Map<String, Object> arguments = (Map<String, Object>) call.arguments;
             String translate = arguments.get("translate").toString();
             Boolean wordExist = Boolean.parseBoolean(arguments.get("wordExist").toString());
 
-            reader.sendTranslateAndCheckWord(translate, wordExist);
+            // A translation can arrive after the reader was closed or before any book was opened.
+            if (reader != null) {
+                reader.sendTranslateAndCheckWord(translate, wordExist);
+            }
+            result.success(null);
         } else {
             result.notImplemented();
         }

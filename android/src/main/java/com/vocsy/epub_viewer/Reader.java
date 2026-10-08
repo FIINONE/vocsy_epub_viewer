@@ -5,22 +5,12 @@ import android.util.Log;
 import java.util.Map;
 import java.util.HashMap;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.folioreader.Config;
 import com.folioreader.FolioReader;
 import com.folioreader.model.HighLight;
 import com.folioreader.model.locators.ReadLocator;
-import com.folioreader.ui.base.OnSaveHighlight;
 import com.folioreader.util.OnHighlightListener;
 import com.folioreader.util.ReadLocatorListener;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
 
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.EventChannel;
@@ -53,7 +43,6 @@ public class Reader implements OnHighlightListener, ReadLocatorListener, FolioRe
         this.context = context;
         readerConfig = config;
 
-        getHighlightsAndSave();
         //setPageHandler(messenger);
 
         folioReader = FolioReader.get()
@@ -81,10 +70,13 @@ public class Reader implements OnHighlightListener, ReadLocatorListener, FolioRe
             public void run() {
                 try {
                     Log.i("SavedLocation", "-> savedLocation -> " + location);
+                    // FolioReader is a singleton: always overwrite the opening position, otherwise a
+                    // book opened without lastLocation starts at the previous book's position.
+                    ReadLocator readLocator = null;
                     if (location != null && !location.isEmpty()) {
-                        ReadLocator readLocator = ReadLocator.Companion.fromJson(location);
-                        folioReader.setReadLocator(readLocator);
+                        readLocator = ReadLocator.Companion.fromJson(location);
                     }
+                    folioReader.setReadLocator(readLocator);
                     folioReader.setConfig(readerConfig.config, true)
                             .openBook(path);
                 } catch (Exception e) {
@@ -128,65 +120,6 @@ public class Reader implements OnHighlightListener, ReadLocatorListener, FolioRe
         } catch (Error err) {
             Log.i("and error", "error is " + err.toString());
         }
-    }
-
-    private void getHighlightsAndSave() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                List<HighLight> highlightList = null;
-                ObjectMapper objectMapper = new ObjectMapper();
-                try {
-                    highlightList = objectMapper.readValue(
-                            loadAssetTextAsString("highlights/highlights_data.json"),
-                            new TypeReference<List<HighLight>>() {}
-                    );
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                if (highlightList == null) {
-                    folioReader.saveReceivedHighLights(highlightList, new OnSaveHighlight() {
-                        @Override
-                        public void onFinished() {
-                            // Do something on success
-                        }
-                    });
-                }
-            }
-        }).start();
-    }
-
-
-    private String loadAssetTextAsString(String name) {
-        BufferedReader in = null;
-        try {
-            StringBuilder buf = new StringBuilder();
-            InputStream is = context.getAssets().open(name);
-            in = new BufferedReader(new InputStreamReader(is));
-
-            String str;
-            boolean isFirst = true;
-            while ((str = in.readLine()) != null) {
-                if (isFirst)
-                    isFirst = false;
-                else
-                    buf.append('\n');
-                buf.append(str);
-            }
-            return buf.toString();
-        } catch (IOException e) {
-            Log.e("Reader", "Error opening asset " + name);
-        } finally {
-            if (in != null) {
-                try {
-                    in.close();
-                } catch (IOException e) {
-                    Log.e("Reader", "Error closing asset " + name);
-                }
-            }
-        }
-        return null;
     }
 
     @Override

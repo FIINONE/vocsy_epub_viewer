@@ -66,7 +66,10 @@ public class FolioReader {
     private OnHighlightListener onHighlightListener;
     private ReadLocatorListener readLocatorListener;
     private OnClosedListener onClosedListener;
+    // Position to open the book at (set by the host app before openBook()).
     private ReadLocator readLocator;
+    // Latest position reported by the reader for the currently open book.
+    private ReadLocator lastReadLocator;
     private OnAddWordListener onAddWordListener;
     private TranslateAndCheckWordListener translateAndCheckWordListener;
     private TextToSpeechListener textToSpeechListener;
@@ -121,6 +124,8 @@ public class FolioReader {
 
             ReadLocator readLocator =
                     (ReadLocator) intent.getSerializableExtra(FolioReader.EXTRA_READ_LOCATOR);
+            if (readLocator != null)
+                lastReadLocator = readLocator;
             if (readLocatorListener != null)
                 readLocatorListener.saveReadLocator(readLocator);
         }
@@ -132,7 +137,10 @@ public class FolioReader {
             if (onClosedListener != null) {
                 int currentPage = intent.getExtras().getInt(EXTRA_FOLIOREADER_CLOSED_CURRENT_PAGE);
                 int totalPage = intent.getExtras().getInt(EXTRA_FOLIOREADER_CLOSED_TOTAL_PAGE);
-                String locator = readLocatorToJson(readLocator);
+                // Report where the user stopped reading; fall back to the opening position when
+                // the reader never reported one (e.g. it was closed right after opening).
+                String locator = readLocatorToJson(
+                        lastReadLocator != null ? lastReadLocator : readLocator);
                 onClosedListener.onFolioReaderClosed(currentPage, totalPage, locator);
             }
         }
@@ -256,6 +264,9 @@ public class FolioReader {
     }
 
     private Intent getIntentFromUrl(String assetOrSdcardPath, int rawId) {
+
+        // A new book is being opened: don't report the previous book's position for it.
+        lastReadLocator = null;
 
         Intent intent = new Intent(context, FolioActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -397,6 +408,7 @@ public class FolioReader {
 
         if (singleton != null) {
             singleton.readLocator = null;
+            singleton.lastReadLocator = null;
             singleton.onHighlightListener = null;
             singleton.readLocatorListener = null;
             singleton.onClosedListener = null;

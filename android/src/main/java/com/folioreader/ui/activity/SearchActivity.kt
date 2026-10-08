@@ -228,7 +228,7 @@ class SearchActivity : AppCompatActivity(), OnItemClickListener {
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         Log.v(LOG_TAG, "-> onCreateOptionsMenu")
-        menuInflater.inflate(R.menu.menu_search, menu!!)
+        menuInflater.inflate(R.menu.folio_menu_search, menu!!)
 
         val config: Config = AppUtil.getSavedConfig(applicationContext)!!
         val itemSearch: MenuItem = menu.findItem(R.id.itemSearch)

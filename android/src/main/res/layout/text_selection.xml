@@ -62,7 +62,7 @@
                     android:layout_marginRight="8dp"
                     android:background="@drawable/inter_grey_button"
                     android:padding="10dp"
-                    android:src="@drawable/ic_share" />
+                    android:src="@drawable/folio_ic_share" />
 
                 <ImageButton
                     android:id="@+id/defineSelection"

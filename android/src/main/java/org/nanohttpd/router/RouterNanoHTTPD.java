@@ -5,12 +5,25 @@ import java.util.Map;
 
 public class RouterNanoHTTPD extends fi.iki.elonen.router.RouterNanoHTTPD {
 
+    private static final String LOOPBACK_HOST = "127.0.0.1";
+
+    // r2-streamer only passes a port. nanohttpd would then listen on all interfaces, exposing the
+    // open book to every device on the same network; the reader only ever connects via 127.0.0.1.
     public RouterNanoHTTPD(int port) {
-        super(port);
+        super(LOOPBACK_HOST, port);
+        setDefaultHandlers();
     }
 
     public RouterNanoHTTPD(String hostname, int port) {
         super(hostname, port);
+        setDefaultHandlers();
+    }
+
+    // nanohttpd 2.3.1 has no not-found handler unless addMappings() is called, and r2-streamer
+    // never calls it: a request without a matching route then throws a NullPointerException in
+    // UriRouter.process() instead of answering 404.
+    private void setDefaultHandlers() {
+        setNotFoundHandler(fi.iki.elonen.router.RouterNanoHTTPD.Error404UriHandler.class);
     }
 
     public static class UriResource {

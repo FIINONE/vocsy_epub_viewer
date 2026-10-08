@@ -81,7 +81,7 @@
         <item name="android:colorBackgroundCacheHint">@null</item>
     </style>
 
-    <style name="DialogAnimation">
+    <style name="FolioDialogAnimation">
         <item name="android:windowEnterAnimation">@anim/slide_up</item>
         <item name="android:windowExitAnimation">@anim/slide_down</item>
     </style>
