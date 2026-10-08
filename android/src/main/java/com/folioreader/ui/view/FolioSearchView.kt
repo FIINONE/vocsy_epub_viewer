@@ -46,22 +46,23 @@ class FolioSearchView : SearchView {
     private fun adjustLayout() {
         Log.v(LOG_TAG, "-> adjustLayout")
 
+        // The search_* ids come from AppCompat's SearchView layout, not from this module's R.
         // Hide search hint icon
-        val searchMagIcon: View = findViewById(R.id.search_mag_icon)
+        val searchMagIcon: View = findViewById(androidx.appcompat.R.id.search_mag_icon)
         searchMagIcon.layoutParams = LinearLayout.LayoutParams(0, 0)
 
         // Remove left margin of search_edit_frame
-        val searchEditFrame: View = findViewById(R.id.search_edit_frame)
+        val searchEditFrame: View = findViewById(androidx.appcompat.R.id.search_edit_frame)
         (searchEditFrame.layoutParams as ViewGroup.MarginLayoutParams).leftMargin = 0
     }
 
     private fun applyTheme(config: Config) {
         Log.v(LOG_TAG, "-> applyTheme")
 
-        val searchCloseButton: ImageView = findViewById(R.id.search_close_btn)
+        val searchCloseButton: ImageView = findViewById(androidx.appcompat.R.id.search_close_btn)
         UiUtil.setColorIntToDrawable(config.currentThemeColor, searchCloseButton.drawable)
 
-        searchAutoComplete = findViewById(R.id.search_src_text)
+        searchAutoComplete = findViewById(androidx.appcompat.R.id.search_src_text)
 
         UiUtil.setEditTextCursorColor(searchAutoComplete, config.currentThemeColor)
         UiUtil.setEditTextHandleColor(searchAutoComplete, config.currentThemeColor)

@@ -27,8 +27,10 @@ rootProject.allprojects {
     }
 }
 
+// Kotlin is deliberately not applied here: Flutter applies the Kotlin Gradle plugin to plugins
+// itself on AGP 8, and AGP 9 compiles Kotlin with its built-in support. Applying it explicitly
+// is reported by Flutter as an upcoming build failure.
 apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
 
 android {
     // The embedded FolioReader sources reference com.folioreader.R and com.folioreader.BuildConfig,
