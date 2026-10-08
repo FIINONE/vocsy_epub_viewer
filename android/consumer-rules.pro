@@ -85,6 +85,10 @@
 # joda-time references optional org.joda.convert annotations.
 -dontwarn org.joda.convert.**
 
+# zt-zip logs through slf4j-api, which looks up an optional binding class at runtime and falls
+# back to a no-op logger when none is present (no binding is bundled on purpose).
+-dontwarn org.slf4j.impl.StaticLoggerBinder
+
 # koi (used by r2-streamer for HASH.sha1) has helpers for the legacy support library that
 # r2 never calls; its support-v4 dependency is excluded in the vendored POM.
 # Note: SwipeLayout (com.daimajia.swipelayout) also references android.support.* classes and

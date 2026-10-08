@@ -8,7 +8,8 @@ Android:
   `com.github.FIINONE:vocsy_epub_viewer_android_folioreader` JitPack artifact.
 * r2-shared/r2-streamer 1.0.4-2 are bundled in `android/maven`; JitPack and JCenter are no longer
   used.
-* The plugin ships R8 keep rules, so release builds no longer need `minifyEnabled false`.
+* Release builds still need code shrinking disabled (`isMinifyEnabled = false`); the bundled
+  R8 rules (`android/consumer-rules.pro`) are partial and do not cover R8 full mode.
 * Reader activities are no longer exported; unused `READ_MEDIA_*` permissions and
   `requestLegacyExternalStorage` were removed from the manifest.
 * Builds with AGP 8 / Kotlin 2.x and relies on Flutter to apply the Kotlin Gradle plugin.

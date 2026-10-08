@@ -28,11 +28,9 @@ android {
         release {
             // Signed with the debug keys so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
-            // Shrinking is on so release builds of the example exercise the plugin's
-            // consumer R8 rules (android/consumer-rules.pro).
-            isMinifyEnabled = true
-            isShrinkResources = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+            // The reader does not work with R8 (see README), same as in the consuming apps.
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
     }
 }

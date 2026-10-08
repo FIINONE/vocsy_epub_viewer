@@ -87,11 +87,22 @@ Requirements in your app:
 - `android.enableJetifier=true` in `android/gradle.properties`. The reader's bookmark and
   highlight lists use SwipeLayout, which still references the legacy support library; without
   Jetifier they crash when opened.
+- Code shrinking disabled for release builds. The reader relies on reflection that R8 breaks
+  (the reader crashes when a book is opened), so in `android/app/build.gradle(.kts)`:
+
+```kotlin
+buildTypes {
+    release {
+        isMinifyEnabled = false
+        isShrinkResources = false
+    }
+}
+```
 
 Everything else comes with the plugin. The reader (FolioReader) is built from sources inside the
 plugin and its r2-streamer dependency is bundled in `android/maven`, so no JitPack or JCenter
 repositories are needed. The plugin declares the `INTERNET` permission and the reader activities
-itself, and ships R8 keep rules, so release builds do not need `minifyEnabled false` anymore.
+itself.
 
 **Network security config.** The reader loads the book from a local HTTP server on `127.0.0.1`,
 so cleartext traffic to that host must be allowed. The plugin's manifest sets

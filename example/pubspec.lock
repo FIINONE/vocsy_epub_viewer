@@ -462,7 +462,7 @@ packages:
     source: hosted
     version: "15.3.0"
   vocsy_epub_viewer:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       path: ".."
       relative: true
