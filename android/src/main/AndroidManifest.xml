@@ -1,4 +1,50 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-  package="com.vocsy.epub_viewer">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Needed both for the local HTTP server that serves the book and for dictionary/Wikipedia lookups. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- FolioActivity requests WRITE_EXTERNAL_STORAGE at runtime below API 33 and finishes
+         if it is denied, so it has to stay declared until that request is removed. -->
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+
+    <!-- Cleartext is only allowed for 127.0.0.1/localhost, where the reader's book server runs. -->
+    <application android:networkSecurityConfig="@xml/network_security_config">
+
+        <provider
+            android:name="com.folioreader.AppContext"
+            android:authorities="${applicationId}.provider.appcontext"
+            android:exported="false" />
+
+        <activity
+            android:name="com.folioreader.ui.activity.FolioActivity"
+            android:exported="false"
+            android:label="@string/app_name"
+            android:screenOrientation="portrait"
+            android:theme="@style/FolioActivityDayTheme" />
+
+        <activity
+            android:name="com.folioreader.ui.activity.ContentHighlightActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar" />
+
+        <!-- The SEARCH filter and searchable metadata are used by FolioSearchView via SearchManager. -->
+        <activity
+            android:name="com.folioreader.ui.activity.SearchActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.SEARCH" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.searchable"
+                android:resource="@xml/searchable" />
+        </activity>
+    </application>
 </manifest>

@@ -9,17 +9,17 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.5
-  permission_handler: ^10.3.0
+  permission_handler: ^12.0.1
   dio: ^5.2.1+1
   path_provider: ^2.0.15
+  vocsy_epub_viewer:
+    path: ../
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
 #  build_runner: ^1.10.0
 #  hive_generator: ^0.5.0
-
-  vocsy_epub_viewer:
-    path: ../
 
 dependency_overrides:
   file: ^7.0.0

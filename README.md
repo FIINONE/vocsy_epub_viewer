@@ -79,40 +79,49 @@ dependencies:
   vocsy_epub_viewer: latest_version
 ```
 
-**NOTE** Please add this to the release build type in your app build.gradle to avoid crashes on android
-release builds
+### Android
 
-```
-minifyEnabled false
-shrinkResources false
-```
+Requirements in your app:
 
-**NOTE** Add These Lines In manifest
+- `minSdk` 24 or higher.
+- `android.enableJetifier=true` in `android/gradle.properties`. The reader's bookmark and
+  highlight lists use SwipeLayout, which still references the legacy support library; without
+  Jetifier they crash when opened.
+- Code shrinking disabled for release builds. The reader relies on reflection that R8 breaks
+  (the reader crashes when a book is opened), so in `android/app/build.gradle(.kts)`:
 
-<a href="#screenshots">
-  <img src="https://raw.githubusercontent.com/kaushikgodhani/vocsy_epub_viewer/main/screenshots/img.png" >
-</a>&nbsp;&nbsp;
-
-+ 1 
-```java
-    <uses-permission android:name="android.permission.INTERNET" />
-```    
-+ 2 
- ```java  
-    xmlns:tools="http://schemas.android.com/tools"
- ```
-+ 3 
- ```java  
-    android:usesCleartextTraffic="true"
-    android:requestLegacyExternalStorage="true"
-    android:networkSecurityConfig="@xml/network_security_config"
-```
-+ 4 
- ```java  
-    android:exported="true"
+```kotlin
+buildTypes {
+    release {
+        isMinifyEnabled = false
+        isShrinkResources = false
+    }
+}
 ```
 
-**NOTE** `android` -> `app` -> `src` -> `main` -> `res` -> `xml` Inside xml Folder create xml file [network_security_config.xml](https://github.com/kaushikgodhani/vocsy_epub_viewer/tree/main/example/android/app/src/main/res/xml)
+Everything else comes with the plugin. The reader (FolioReader) is built from sources inside the
+plugin and its r2-streamer dependency is bundled in `android/maven`, so no JitPack or JCenter
+repositories are needed. The plugin declares the `INTERNET` permission and the reader activities
+itself.
+
+**Network security config.** The reader loads the book from a local HTTP server on `127.0.0.1`,
+so cleartext traffic to that host must be allowed. The plugin's manifest sets
+`android:networkSecurityConfig="@xml/network_security_config"` with such a config. If your app
+has its own network security config:
+
+- named `res/xml/network_security_config.xml` — your file replaces the plugin's one, so it must
+  allow `127.0.0.1`;
+- with another name — add `tools:replace="android:networkSecurityConfig"` to your
+  `<application>` and allow `127.0.0.1` in your file.
+
+```xml
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">127.0.0.1</domain>
+    </domain-config>
+</network-security-config>
+```
+
 ## Usage
 
 ```dart

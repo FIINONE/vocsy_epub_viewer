@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Vendored copy of com.github.codetoart:r2-shared-kotlin:1.0.4-2 (originally served by JitPack).
+  The AAR is byte-identical to the JitPack artifact (SHA-1 3d8007199cac5ee1ddd2a15e964a2401aef70b5e).
+
+  It is published under its own groupId because this POM differs from the JitPack one: with the
+  original coordinates an app that also has jitpack.io in its repositories (added by other
+  plugins) resolves the JitPack POM first and pulls dependencies that no longer exist.
+
+  Dependencies are trimmed to what the bytecode actually references:
+  - fuel / fuel-android / result: only FuelPromiseExtension.kt; bumped from 1.15.0 to 2.3.1,
+    the version the reader already resolves to (1.15.0 was only ever published on JCenter).
+  - kovenant-core: FuelPromiseExtension.kt and DrmLicense.
+  - joda-time: DrmLicense.
+  Dropped as unreferenced: com.android.support:appcompat-v7, gson, timber, the kovenant
+  aggregate/android/combine/jvm/functional modules.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.vocsy.epub_viewer.vendored</groupId>
+  <artifactId>r2-shared-kotlin</artifactId>
+  <version>1.0.4-2</version>
+  <packaging>aar</packaging>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.jetbrains.kotlin</groupId>
+      <artifactId>kotlin-stdlib-jdk8</artifactId>
+      <version>1.9.24</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.github.kittinunf.fuel</groupId>
+      <artifactId>fuel</artifactId>
+      <version>2.3.1</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.github.kittinunf.fuel</groupId>
+      <artifactId>fuel-android</artifactId>
+      <version>2.3.1</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>nl.komponents.kovenant</groupId>
+      <artifactId>kovenant-core</artifactId>
+      <version>3.3.0</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>joda-time</groupId>
+      <artifactId>joda-time</artifactId>
+      <version>2.9.9</version>
+      <scope>runtime</scope>
+    </dependency>
+  </dependencies>
+</project>

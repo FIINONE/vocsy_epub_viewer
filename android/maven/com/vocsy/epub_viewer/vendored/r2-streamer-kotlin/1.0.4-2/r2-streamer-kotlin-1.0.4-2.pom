@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Vendored copy of com.github.codetoart:r2-streamer-kotlin:1.0.4-2 (originally served by JitPack).
+  The AAR is byte-identical to the JitPack artifact (SHA-1 a3f15580ce20de049a75dea9d9f870f5ccf2242e).
+  Published under its own groupId for the same reason as r2-shared-kotlin (see its POM).
+
+  The original POM depended on com.github.NanoHttpd.nanohttpd:*:fd80618e93d (a JitPack build of
+  a nanohttpd 3.0 snapshot that is no longer available). It is replaced with nanohttpd 2.3.1 from
+  Maven Central; the org.nanohttpd.* API this AAR was compiled against is provided by the shim
+  classes in the plugin sources (android/src/main/java/org/nanohttpd).
+
+  Dependencies are trimmed to what the bytecode actually references:
+  - jackson-databind: ObjectMapper for JSON output (bumped from 2.9.7 to the 2.14.3 the reader uses).
+  - koi core: fetcher/FontDecoder (HASH.sha1, toHexBytes).
+  - zt-zip: container/ContainerEpub (ZipUtil.containsEntry).
+  - joda-time: DateTime.
+  Dropped as unreferenced: com.android.support:appcompat-v7, gson, timber, koi async,
+  commons-io, jsoup, kovenant.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.vocsy.epub_viewer.vendored</groupId>
+  <artifactId>r2-streamer-kotlin</artifactId>
+  <version>1.0.4-2</version>
+  <packaging>aar</packaging>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.vocsy.epub_viewer.vendored</groupId>
+      <artifactId>r2-shared-kotlin</artifactId>
+      <version>1.0.4-2</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jetbrains.kotlin</groupId>
+      <artifactId>kotlin-stdlib-jdk8</artifactId>
+      <version>1.9.24</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.nanohttpd</groupId>
+      <artifactId>nanohttpd</artifactId>
+      <version>2.3.1</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.nanohttpd</groupId>
+      <artifactId>nanohttpd-nanolets</artifactId>
+      <version>2.3.1</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>2.14.3</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.mcxiaoke.koi</groupId>
+      <artifactId>core</artifactId>
+      <version>0.5.5</version>
+      <scope>runtime</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>com.android.support</groupId>
+          <artifactId>support-v4</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.zeroturnaround</groupId>
+      <artifactId>zt-zip</artifactId>
+      <version>1.12</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>joda-time</groupId>
+      <artifactId>joda-time</artifactId>
+      <version>2.9.9</version>
+      <scope>runtime</scope>
+    </dependency>
+  </dependencies>
+</project>
