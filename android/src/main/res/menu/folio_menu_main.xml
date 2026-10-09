@@ -11,10 +11,11 @@
         app:showAsAction="ifRoom"
         tools:showAsAction="always" />
 
+    <!-- Replaces the search item; a tap is forwarded to Flutter (VocsyEpub.onLikeStream). -->
     <item
-        android:id="@+id/itemSearch"
-        android:icon="@drawable/ic_search"
-        android:title="@string/menu_item_search"
+        android:id="@+id/itemLike"
+        android:icon="@drawable/folio_ic_like"
+        android:title="@string/folio_menu_item_like"
         app:showAsAction="ifRoom"
         tools:showAsAction="always" />
 

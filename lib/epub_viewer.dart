@@ -24,6 +24,8 @@ class VocsyEpub {
   static const EventChannel _onDismissPopupChannel =
       const EventChannel('on_dismiss_popup');
 
+  static Future<bool> Function(bool currentlyLiked)? _likeHandler;
+
   /// Configure Viewer's with available values
   ///
   /// themeColor is the color of the reader
@@ -50,11 +52,15 @@ class VocsyEpub {
 
   /// bookPath should be a local file.
   /// Last location is only available for android.
-  static void open(String bookPath, {EpubLocator? lastLocation}) async {
+  /// [liked] is the initial state of the toolbar like button (Android only),
+  /// see [setLikeHandler].
+  static void open(String bookPath,
+      {EpubLocator? lastLocation, bool liked = false}) async {
     Map<String, dynamic> agrs = {
       "bookPath": bookPath,
       'lastLocation':
           lastLocation == null ? '' : jsonEncode(lastLocation.toJson()),
+      'liked': liked,
     };
     _channel.invokeMethod('setChannel');
     await _channel.invokeMethod('open', agrs);
@@ -67,12 +73,14 @@ class VocsyEpub {
 
   /// bookPath should be an asset file path.
   /// Last location is only available for android.
-  static Future openAsset(String bookPath, {EpubLocator? lastLocation}) async {
+  static Future openAsset(String bookPath,
+      {EpubLocator? lastLocation, bool liked = false}) async {
     if (extension(bookPath) == '.epub') {
       Map<String, dynamic> agrs = {
         "bookPath": (await Util.getFileFromAsset(bookPath)).path,
         'lastLocation':
             lastLocation == null ? '' : jsonEncode(lastLocation.toJson()),
+        'liked': liked,
       };
       _channel.invokeMethod('setChannel');
       await _channel.invokeMethod('open', agrs);
@@ -131,6 +139,31 @@ class VocsyEpub {
         .map((event) => event.toString());
 
     return onDismiss;
+  }
+
+  /// Handles taps on the "like" button in the reader toolbar (Android only).
+  ///
+  /// [handler] gets the current state and returns the new one, which the
+  /// button then shows (filled when liked). The button ignores further taps
+  /// until the handler completes; if it throws, the state stays unchanged.
+  /// Pass null to remove the handler. The initial state comes from the
+  /// `liked` argument of [open] / [openAsset].
+  static void setLikeHandler(
+      Future<bool> Function(bool currentlyLiked)? handler) {
+    _likeHandler = handler;
+    _channel.setMethodCallHandler(handler == null ? null : _handleNativeCall);
+  }
+
+  static Future<dynamic> _handleNativeCall(MethodCall call) async {
+    switch (call.method) {
+      case 'onLike':
+        final currentlyLiked = call.arguments == true;
+        final handler = _likeHandler;
+        if (handler == null) return currentlyLiked;
+        return await handler(currentlyLiked);
+      default:
+        throw MissingPluginException('${call.method} is not handled');
+    }
   }
 
   static Future<void> sendTransAndCheckWord(

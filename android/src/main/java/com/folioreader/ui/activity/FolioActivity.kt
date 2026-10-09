@@ -94,6 +94,8 @@ class FolioActivity : AppCompatActivity(), FolioActivityCallback, MediaControlle
     private var appBarLayout: FolioAppBarLayout? = null
     private var toolbar: Toolbar? = null
     private var createdMenu: Menu? = null
+    private var likeRequestPending = false
+    private val likeRequestTimeout = Runnable { likeRequestPending = false }
     private var distractionFreeMode: Boolean = false
     private var handler: Handler? = null
 
@@ -146,6 +148,7 @@ class FolioActivity : AppCompatActivity(), FolioActivityCallback, MediaControlle
         const val ACTION_SEARCH_CLEAR = "ACTION_SEARCH_CLEAR"
         private const val HIGHLIGHT_ITEM = "highlight_item"
         private const val BOOKMARK_ITEM = "bookmark_item"
+        private const val LIKE_REQUEST_TIMEOUT_MS = 30_000L
     }
 
     private val closeBroadcastReceiver = object : BroadcastReceiver() {
@@ -375,7 +378,7 @@ class FolioActivity : AppCompatActivity(), FolioActivityCallback, MediaControlle
         // Update toolbar colors
         createdMenu?.let { m ->
             UiUtil.setColorIntToDrawable(config.themeColor, m.findItem(R.id.itemBookmark).icon)
-            UiUtil.setColorIntToDrawable(config.themeColor, m.findItem(R.id.itemSearch).icon)
+            setLikeIcon(m, config.themeColor)
             UiUtil.setColorIntToDrawable(config.themeColor, m.findItem(R.id.itemConfig).icon)
             UiUtil.setColorIntToDrawable(config.themeColor, m.findItem(R.id.itemTts).icon)
         }
@@ -403,7 +406,7 @@ class FolioActivity : AppCompatActivity(), FolioActivityCallback, MediaControlle
         // Update toolbar colors
         createdMenu?.let { m ->
             UiUtil.setColorIntToDrawable(config.nightThemeColor, m.findItem(R.id.itemBookmark).icon)
-            UiUtil.setColorIntToDrawable(config.nightThemeColor, m.findItem(R.id.itemSearch).icon)
+            setLikeIcon(m, config.nightThemeColor)
             UiUtil.setColorIntToDrawable(config.nightThemeColor, m.findItem(R.id.itemConfig).icon)
             UiUtil.setColorIntToDrawable(config.nightThemeColor, m.findItem(R.id.itemTts).icon)
         }
@@ -443,9 +446,7 @@ class FolioActivity : AppCompatActivity(), FolioActivityCallback, MediaControlle
             UiUtil.setColorIntToDrawable(
                 config.currentThemeColor, menu.findItem(R.id.itemBookmark).icon
             )
-            UiUtil.setColorIntToDrawable(
-                config.currentThemeColor, menu.findItem(R.id.itemSearch).icon
-            )
+            setLikeIcon(menu, config.currentThemeColor)
             UiUtil.setColorIntToDrawable(
                 config.currentThemeColor, menu.findItem(R.id.itemConfig).icon
             )
@@ -514,17 +515,10 @@ class FolioActivity : AppCompatActivity(), FolioActivityCallback, MediaControlle
 
                 return true
             }
-            R.id.itemSearch -> {
+            R.id.itemLike -> {
                 Log.v(LOG_TAG, "-> onOptionsItemSelected -> " + item.title)
-                if (searchUri == null) return true
-                val intent = Intent(this, SearchActivity::class.java)
-                intent.putExtra(SearchActivity.BUNDLE_SPINE_SIZE, spine?.size ?: 0)
-                intent.putExtra(SearchActivity.BUNDLE_SEARCH_URI, searchUri)
-                intent.putExtra(SearchAdapter.DATA_BUNDLE, searchAdapterDataBundle)
-                intent.putExtra(SearchActivity.BUNDLE_SAVE_SEARCH_QUERY, searchQuery)
-                startActivityForResult(intent, RequestCode.SEARCH.value)
+                requestLikeToggle()
                 return true
-
             }
             R.id.itemConfig -> {
                 Log.v(LOG_TAG, "-> onOptionsItemSelected -> " + item.title)
@@ -540,6 +534,44 @@ class FolioActivity : AppCompatActivity(), FolioActivityCallback, MediaControlle
             else -> return super.onOptionsItemSelected(item)
         }
 
+    }
+
+    /**
+     * Asks the host app (FolioReader.LikeHandler) for the new like state. The icon only changes
+     * once the answer arrives; taps are ignored while a request is in flight, with a timeout so a
+     * handler that never answers can't disable the button for good.
+     */
+    private fun requestLikeToggle() {
+        if (likeRequestPending) return
+        likeRequestPending = true
+        handler?.postDelayed(likeRequestTimeout, LIKE_REQUEST_TIMEOUT_MS)
+
+        val started = FolioReader.get().requestLikeToggle {
+            // Late answers after the timeout still carry the real state, so apply them too.
+            handler?.removeCallbacks(likeRequestTimeout)
+            likeRequestPending = false
+            if (!isFinishing && !isDestroyed) refreshLikeIcon()
+        }
+        if (!started) {
+            handler?.removeCallbacks(likeRequestTimeout)
+            likeRequestPending = false
+        }
+    }
+
+    private fun refreshLikeIcon() {
+        val menu = createdMenu ?: return
+        val config = AppUtil.getSavedConfig(applicationContext) ?: return
+        setLikeIcon(menu, config.currentThemeColor)
+    }
+
+    private fun setLikeIcon(menu: Menu, color: Int) {
+        val item = menu.findItem(R.id.itemLike) ?: return
+        val iconRes =
+            if (FolioReader.get().isLiked) R.drawable.folio_ic_like_filled else R.drawable.folio_ic_like
+        // mutate(): the same drawable resource must not share tint state with other instances.
+        val icon = ContextCompat.getDrawable(this, iconRes)?.mutate() ?: return
+        UiUtil.setColorIntToDrawable(color, icon)
+        item.icon = icon
     }
 
     private fun startContentHighlightActivity() {
@@ -970,6 +1002,8 @@ class FolioActivity : AppCompatActivity(), FolioActivityCallback, MediaControlle
 
     override fun onDestroy() {
         super.onDestroy()
+
+        handler?.removeCallbacks(likeRequestTimeout)
 
         if (outState != null) outState!!.putSerializable(
             BUNDLE_READ_LOCATOR_CONFIG_CHANGE,

@@ -83,7 +83,7 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
         setTextToSpeechEvent();
         setOnDismissPopupEvent();
 
-        channel = new MethodChannel(binding.getFlutterEngine().getDartExecutor(), channelName);
+        channel =new MethodChannel(binding.getFlutterEngine().getDartExecutor(), channelName);
         channel.setMethodCallHandler(this);
     }
 
@@ -229,6 +229,7 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
             Map<String, Object> arguments = (Map<String, Object>) call.arguments;
             String bookPath = arguments.get("bookPath").toString();
             String lastLocation = arguments.get("lastLocation").toString();
+            boolean liked = Boolean.TRUE.equals(arguments.get("liked"));
 
             Log.i("opening", "In open function");
 
@@ -250,8 +251,8 @@ public class EpubViewerPlugin implements MethodCallHandler, FlutterPlugin, Activ
             if (onDismissPopupSink == null) {
                 Log.i("onDismissPopupSink status", "sink is empty");
             }
-            reader = new Reader(context, messenger, config, sink, epubClosedSink, addWordSink, transAndCheckSink, textToSpeechSink, onDismissPopupSink);
-            reader.open(bookPath, lastLocation);
+            reader = new Reader(context, messenger, config, sink, epubClosedSink, addWordSink, transAndCheckSink, textToSpeechSink, onDismissPopupSink, channel);
+            reader.open(bookPath, lastLocation, liked);
             // The reader is started asynchronously; the call completes once the open is scheduled.
             result.success(null);
 

@@ -18,7 +18,8 @@ import io.flutter.plugin.common.MethodChannel;
 
 public class Reader implements OnHighlightListener, ReadLocatorListener, FolioReader.OnClosedListener,
             FolioReader.OnAddWordListener, FolioReader.TranslateAndCheckWordListener,
-            FolioReader.TextToSpeechListener, FolioReader.OnDismissPopupListener {
+            FolioReader.TextToSpeechListener, FolioReader.OnDismissPopupListener,
+            FolioReader.LikeHandler {
 
     private ReaderConfig readerConfig;
     public FolioReader folioReader;
@@ -35,11 +36,14 @@ public class Reader implements OnHighlightListener, ReadLocatorListener, FolioRe
     private EventChannel.EventSink translateAndCheckSink;
     private EventChannel.EventSink textToSpeechSink;
     private EventChannel.EventSink onDismissPopupSink;
+    // The plugin's method channel; used to ask the Dart like handler for the new state.
+    private MethodChannel methodChannel;
 
-    Reader(Context context, BinaryMessenger messenger, ReaderConfig config, 
+    Reader(Context context, BinaryMessenger messenger, ReaderConfig config,
         EventChannel.EventSink sink, EventChannel.EventSink closeSink,
         EventChannel.EventSink addSink, EventChannel.EventSink sendWordSink,
-        EventChannel.EventSink textSpeechSing, EventChannel.EventSink dismissSink) {
+        EventChannel.EventSink textSpeechSing, EventChannel.EventSink dismissSink,
+        MethodChannel channel) {
         this.context = context;
         readerConfig = config;
 
@@ -52,7 +56,8 @@ public class Reader implements OnHighlightListener, ReadLocatorListener, FolioRe
                 .setOnAddWordListener(this)
                 .setTranslateAndCheckListener(this)
                 .setTextToSpeechListener(this)
-                .setOnDismissPopupListener(this);
+                .setOnDismissPopupListener(this)
+                .setLikeHandler(this);
 
         pageEventSink = sink;
         epubClosedSink = closeSink;
@@ -60,11 +65,14 @@ public class Reader implements OnHighlightListener, ReadLocatorListener, FolioRe
         translateAndCheckSink = sendWordSink;
         textToSpeechSink = textSpeechSing;
         onDismissPopupSink = dismissSink;
+        methodChannel = channel;
     }
 
-    public void open(String bookPath, String lastLocation) {
+    public void open(String bookPath, String lastLocation, boolean liked) {
         final String path = bookPath;
         final String location = lastLocation;
+        // Set synchronously so the toolbar already shows the right icon when the reader starts.
+        folioReader.setLiked(liked);
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -193,6 +201,32 @@ public class Reader implements OnHighlightListener, ReadLocatorListener, FolioRe
             Log.i("reader", "onDismissPopupSink -> Sink is Empty");
 
         }
+    }
+
+    // Calls the Dart handler set with VocsyEpub.setLikeHandler(); its return value is the new state.
+    // Any failure (no handler, exception in it, unexpected value) keeps the current state.
+    @Override
+    public void onLikeTapped(final boolean currentlyLiked, final FolioReader.LikeResultCallback callback) {
+        Log.v("reader", "-> onLikeTapped -> currentlyLiked = " + currentlyLiked);
+
+        methodChannel.invokeMethod("onLike", currentlyLiked, new MethodChannel.Result() {
+            @Override
+            public void success(Object result) {
+                callback.onResult(result instanceof Boolean ? (Boolean) result : currentlyLiked);
+            }
+
+            @Override
+            public void error(String errorCode, String errorMessage, Object errorDetails) {
+                Log.e("reader", "-> onLikeTapped -> error: " + errorCode + " " + errorMessage);
+                callback.onResult(currentlyLiked);
+            }
+
+            @Override
+            public void notImplemented() {
+                Log.i("reader", "-> onLikeTapped -> no like handler on the Dart side");
+                callback.onResult(currentlyLiked);
+            }
+        });
     }
 
     public void sendTranslateAndCheckWord(String translate, boolean wordExist) {

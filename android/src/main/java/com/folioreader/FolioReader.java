@@ -74,6 +74,9 @@ public class FolioReader {
     private TranslateAndCheckWordListener translateAndCheckWordListener;
     private TextToSpeechListener textToSpeechListener;
     private OnDismissPopupListener onDismissPopupListener;
+    private LikeHandler likeHandler;
+    // Like state of the currently open book, shown by the like button in the toolbar.
+    private boolean liked;
 
     @Nullable
     public Retrofit retrofit;
@@ -104,6 +107,18 @@ public class FolioReader {
 
     public interface OnDismissPopupListener {
         void onDismissPopupListener();
+    }
+
+    /**
+     * Decides what a tap on the "like" button does. Must eventually call {@code callback} exactly
+     * once (on the main thread) with the resulting like state; the button ignores taps until then.
+     */
+    public interface LikeHandler {
+        void onLikeTapped(boolean currentlyLiked, LikeResultCallback callback);
+    }
+
+    public interface LikeResultCallback {
+        void onResult(boolean liked);
     }
 
     private BroadcastReceiver highlightReceiver = new BroadcastReceiver() {
@@ -374,6 +389,37 @@ public class FolioReader {
         return singleton;
     }
 
+    public FolioReader setLikeHandler(LikeHandler likeHandler) {
+        this.likeHandler = likeHandler;
+        return singleton;
+    }
+
+    /** Like state shown when the book is opened; set it before openBook(). */
+    public FolioReader setLiked(boolean liked) {
+        this.liked = liked;
+        return singleton;
+    }
+
+    public boolean isLiked() {
+        return liked;
+    }
+
+    /**
+     * Asks the {@link LikeHandler} for the new like state. Returns false (and never calls
+     * {@code callback}) when no handler is set.
+     */
+    public boolean requestLikeToggle(final LikeResultCallback callback) {
+        if (likeHandler == null) return false;
+        likeHandler.onLikeTapped(liked, new LikeResultCallback() {
+            @Override
+            public void onResult(boolean newLiked) {
+                liked = newLiked;
+                callback.onResult(newLiked);
+            }
+        });
+        return true;
+    }
+
     public void saveReceivedHighLights(List<HighLight> highlights,
                                        OnSaveHighlight onSaveHighlight) {
         new SaveReceivedHighlightTask(onSaveHighlight, highlights).execute();
@@ -416,6 +462,8 @@ public class FolioReader {
             singleton.translateAndCheckWordListener = null;
             singleton.textToSpeechListener = null;
             singleton.onDismissPopupListener = null;
+            singleton.likeHandler = null;
+            singleton.liked = false;
         }
     }
 

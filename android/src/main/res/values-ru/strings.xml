@@ -42,5 +42,6 @@
     <string name="save_note">Сохранить заметку</string>
     <string name="please_enter_note">пожалуйста введите заметку</string>
     <string name="contents">Содержание</string>
+    <string name="folio_menu_item_like">Нравится</string>
 
 </resources>

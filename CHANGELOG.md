@@ -1,3 +1,13 @@
+## 4.1.0 (Unreleased)
+
+Android:
+* The search button in the reader toolbar is replaced with a "like" (thumbs up) button, filled
+  when liked. The app decides what a tap does via `VocsyEpub.setLikeHandler((currentlyLiked) async
+  => newState)`; the icon changes only to the returned state, and taps are ignored while the
+  handler runs (30 s safety timeout). The initial state is passed as `open(..., liked: bool)` /
+  `openAsset(..., liked: bool)`.
+* In-book search is no longer reachable from the toolbar.
+
 ## 4.0.1 (2026-10-08)
 
 Android:
