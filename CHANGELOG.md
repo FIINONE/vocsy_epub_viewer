@@ -1,4 +1,4 @@
-## 4.1.0 (Unreleased)
+## 4.1.0 (2026-10-09)
 
 Android:
 * The search button in the reader toolbar is replaced with a "like" (thumbs up) button, filled
